@@ -1,0 +1,2 @@
+[1;33m[DEBUG][src/main.c 114]: [0mcreated trie and sinserted[1;31m[ERROR][src/main.c 56]: [0mFailed to create index
+[1;33m[DEBUG][src/ui.c 107]: [0m18
