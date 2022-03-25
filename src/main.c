@@ -8,10 +8,25 @@
 #include "index.h"
 #include "printing.h"
 #include "ui.h"
+#include "bst.h"
 
 
 
 index_t *idx = NULL;
+
+static void printwords(char *prefix, list_t *words)
+{
+    list_iter_t *it;
+
+    it = list_createiter(words);
+    printf("%s: ", prefix);
+    while (list_hasnext(it))
+    {
+        printf(" %s", list_next(it));
+    }
+    printf("\n");
+    list_destroyiter(it);
+}
 
 
 int mystrcmp(void *a, void *b)
@@ -107,10 +122,21 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    // ADT operations testing:
+    /*
+    bst_t *bst = bst_create(mystrcmp);
+    char *a = "foo";
+    char *b = "bar";
+    bst_insert(bst, a, b);
+    void *elem = bst_search(bst, a);
+    trie_t *trie = trie_create();
+    trie_insert(trie, a, b);
+    DEBUG_PRINT("%p", elem);
+    */
 
     char *root_dir = argv[1];
     initialize_index(root_dir);
-    
+
     ui_init();
     main_program_loop();
 

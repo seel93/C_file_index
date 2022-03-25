@@ -86,6 +86,7 @@ error:
 
 void _trie_destroy(node_t *node)
 {
+    DEBUG_PRINT("%p", node->key);
     if (isleaf(node))
     {
         node_destroy(node);
@@ -118,11 +119,13 @@ void trie_destroy(trie_t *trie)
 
 int trie_insert(trie_t *trie, char *key, void *value)
 {
+
     node_t *iter = trie->root;
 
     // Only allow alphabet characters
     for (int i = 0; key[i] != '\0'; i++)
     {
+        DEBUG_PRINT("%c", key[i]);
         if (!isalpha(key[i]))
         {
             goto error;
