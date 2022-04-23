@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 #include "trie.h"
 #include "printing.h"
 
@@ -14,6 +15,7 @@ typedef struct node node_t;
 struct node {
     char *key;
     void *value;
+    bool end_of_word;
     node_t *children[TRIE_RADIX];
 };
 
@@ -45,6 +47,7 @@ static node_t *node_create(char *key, void *value) {
 
     node->key = key;
     node->value = value;
+    node->end_of_word = false;
 
     return node;
 
@@ -111,12 +114,15 @@ int trie_insert(trie_t *trie, char *key, void *value) {
         // We only use lowercase letters (case insensitive)
         if (iter->children[ASCII_TO_IDX(tolower(key[i]))] == NULL) {
             iter->children[ASCII_TO_IDX(tolower(key[i]))] = node_create(NULL, NULL);
+        }else{
+            DEBUG_PRINT("%s \n", key);
         }
         iter = iter->children[ASCII_TO_IDX(tolower(key[i]))];
     }
 
     iter->key = key;
     iter->value = value;
+    iter->end_of_word = true;
 
     return 0;
 
@@ -126,21 +132,19 @@ int trie_insert(trie_t *trie, char *key, void *value) {
 
 char *trie_find(trie_t *trie, char *key) {
     // Initialize variables:
-    int key_level;
     int query_length = strlen(key);
     int alphabetical_index;
     struct node *node = trie->root;
 
     // Tree traversal:
-    for (key_level = 0; key_level < query_length; key_level++){
+    for (int key_level = 0; key_level < query_length; key_level++){
         alphabetical_index = CHAR_TO_INDEX(key[key_level]);
         if (!node->children[alphabetical_index])
             return NULL;
         node = node->children[alphabetical_index];
     }
 
-    if(node != NULL && isleaf(node)){
-        DEBUG_PRINT("Im here \n");
+    if(node != NULL && node->end_of_word){
         return node->value;
     }
     return NULL;

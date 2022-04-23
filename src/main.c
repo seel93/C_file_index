@@ -1,14 +1,11 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
-
 #include "list.h"
 #include "index.h"
 #include "printing.h"
 #include "ui.h"
-#include "map.h"
 
 
 index_t *idx = NULL;
@@ -19,7 +16,7 @@ static void printwords(char *prefix, list_t *words) {
     it = list_createiter(words);
     printf("%s: ", prefix);
     while (list_hasnext(it)) {
-        printf(" %s", list_next(it));
+        printf("%s", list_next(it));
     }
     printf("\n");
     list_destroyiter(it);
@@ -65,11 +62,9 @@ void initialize_index(char *root_dir) {
     while (list_hasnext(iter)) {
         relpath = (char *) list_next(iter);
         fullpath = concatenate_strings(2, root_dir, relpath);
-        INFO_PRINT("Indexing %s\n", fullpath);
 
         words = list_create(mystrcmp);
         tokenize_file(fullpath, words);
-        DEBUG_PRINT("tokenizing done");
         index_add_document(idx, relpath, words);
 
         free(fullpath);
@@ -103,11 +98,17 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-//    char *root_dir = argv[1];
-//    initialize_index(root_dir);
-//
-//    ui_init();
-//    main_program_loop();
+    /*
+    char *root_dir = argv[1];
+    initialize_index(root_dir);
+    char *a = "of";
+    index_find(idx, a);
+
+
+
+    ui_init();
+    main_program_loop();
+     */
 
     // ADT operations testing ----------------------------------------
     char *a = "foo";
@@ -116,33 +117,47 @@ int main(int argc, char **argv) {
     char *d = "rect";
     char *e = "im";
     char *f = "fucked";
+    char *g = "foot";
+    char *h = "ball";
+    char *i = "footy";
+    char *j = "table";
+    char *k = "more";
+    char *l = "major";
 
-    list_t *list = list_create(mystrcmp);
-    list_addlast(list, 'hei \0');
-    list_addlast(list, 'hade \0');
-    list_addlast(list, 'sneiks \0');
-    index_t *index = index_create();
-
-    index_add_document(index,'d', list);
+    //list_t *list = list_create(mystrcmp);
+    //list_addlast(list, 'hei');
+    //list_addlast(list, 'hade');
+    //list_addlast(list, 'sneiks');
+    //index_t *index = index_create();
+    //index_add_document(index,'d', list);
 
 
 
 
     /*
+    */
     trie_t *trie = trie_create();
     trie_insert(trie, a, b);
-    trie_insert(trie, c, d);
-    trie_insert(trie, e, f);
+    //trie_insert(trie, c, d);
+    //trie_insert(trie, e, f);
+    //trie_insert(trie, g, h);
+    trie_insert(trie, i, j);
+    trie_insert(trie, i, k);
+    trie_insert(trie, i, l);
 
 
-    char *res1 = trie_find(trie, "foo");
-    char *res2 = trie_find(trie, "get");
-    char *res3 = trie_find(trie, "im");
+    //char *res1 = trie_find(trie, "foo");
+    //char *res2 = trie_find(trie, "get");
+    //char *res3 = trie_find(trie, "im");
+    //char *res4 = trie_find(trie, "foot");
+    char *res5 = trie_find(trie, "footy");
 
-    DEBUG_PRINT("%s \n", res1);
-    DEBUG_PRINT("%s \n", res2);
-    DEBUG_PRINT("%s \n", res3);
-    */
+
+    //DEBUG_PRINT("%s \n", res1);
+    //DEBUG_PRINT("%s \n", res2);
+    //DEBUG_PRINT("%s \n", res3);
+    //DEBUG_PRINT("%s \n", res4);
+    DEBUG_PRINT("%s \n", res5);
 //    map_t *map = map_create(djb2, compare_strings);
 //    int n = map_haskey(map, a);
 //    int m = map_haskey(map, c);

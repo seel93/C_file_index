@@ -31,7 +31,11 @@ struct search_result
 {
     int location;
     int len;
-    // TODO implement additional fields if necessary
+    /*
+     * TODO implement additional fields if necessary:
+     * location vil bare gi resultat for ett ord
+     * det funker ikke dersom man skal kunne søke på setninger!
+     */
 };
 
 
@@ -83,15 +87,10 @@ void index_add_document(index_t *idx, char *document_name, list_t *words){
     list_addlast(idx->document_list, document_name);
     it = list_createiter(words);
 
+    int word_index = 0;
     while (list_hasnext(it)){
-        int *word_index = 0;
-        int a = trie_insert(idx->trie, list_next(it),word_index);
-        if (a == -1){
-            DEBUG_PRINT("failed to insert");
-        }else{
-            DEBUG_PRINT("Trie insert succes");
-        }
-        ++word_index;
+        trie_insert(idx->trie, list_next(it), &word_index);
+        word_index++;
     }
 }
 
@@ -103,8 +102,9 @@ void index_add_document(index_t *idx, char *document_name, list_t *words){
 search_result_t *index_find(index_t *idx, char *query)
 {
     void *res = trie_find(idx->trie, query);
-    DEBUG_PRINT("%p\n", res);
-    return NULL;
+    DEBUG_PRINT("%s\n", res);
+    search_result_t *result = res;
+    return res;
 }
 
 
