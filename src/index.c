@@ -5,7 +5,6 @@
 #include "map.h"
 #include "printing.h"
 #include "trie.h"
-#include "bst.h"
 #include "common.h"
 #include "list.h"
 
@@ -14,18 +13,14 @@
  * you might need a struct for keeping track of documents
  */
 
-
-
 /*
  * Implement your index here.
  */
-typedef struct bst bst_t;
 struct index
 {
-    //bst_t *bst;
     trie_t *trie;
     list_t *document_list;
-    // TODO implement
+
 };
 
 /*
@@ -60,9 +55,7 @@ static inline int cmp_strs(void *a, void *b)
  */
 index_t *index_create()
 {
-    DEBUG_PRINT("Creating index \n");
     index_t *index = malloc(sizeof (index));
-    //index->bst = bst_create(cmp_strs);
     index->trie = trie_create();
     index->document_list = list_create(cmp_strs);
     return index;
@@ -75,7 +68,6 @@ index_t *index_create()
  */
 void index_destroy(index_t *index)
 {
-    //bst_destroy(index->bst);
     trie_destroy(index->trie);
     list_destroy(index->document_list);
     free(index);
@@ -92,14 +84,14 @@ void index_add_document(index_t *idx, char *document_name, list_t *words){
     it = list_createiter(words);
 
     while (list_hasnext(it)){
-        DEBUG_PRINT("%s\n", list_next(it));
-        //bst_insert(idx->bst, (void *) hash_string(list_next(iter)), list_next(iter));
-        int a = trie_insert(idx->trie, hash_string(list_next(it)), list_next(it));
+        int *word_index = 0;
+        int a = trie_insert(idx->trie, list_next(it),word_index);
         if (a == -1){
             DEBUG_PRINT("failed to insert");
         }else{
             DEBUG_PRINT("Trie insert succes");
         }
+        ++word_index;
     }
 }
 
@@ -110,7 +102,6 @@ void index_add_document(index_t *idx, char *document_name, list_t *words){
  */
 search_result_t *index_find(index_t *idx, char *query)
 {
-    //void *res = bst_search(idx->bst, query);
     void *res = trie_find(idx->trie, query);
     DEBUG_PRINT("%p\n", res);
     return NULL;

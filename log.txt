@@ -1,2 +1,3 @@
-[1;33m[DEBUG][src/index.c 63]: [0mCreating index 
-[1;33m[DEBUG][src/index.c 95]: [0mThe
+[1;33m[DEBUG][src/bst.c 115]: [0m3 
+[1;33m[DEBUG][src/bst.c 116]: [0m3 
+[1;33m[DEBUG][src/trie.c 123]: [0m0x556d1beb4605[1;33m[DEBUG][src/trie.c 129]: [0mf[1;33m[DEBUG][src/trie.c 129]: [0mo[1;33m[DEBUG][src/trie.c 129]: [0mo[1;33m[DEBUG][src/main.c 134]: [0m0x556d1beb4605

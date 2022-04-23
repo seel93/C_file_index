@@ -2,40 +2,34 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-
 #include "trie.h"
 #include "printing.h"
 
 #define TRIE_RADIX 26
 #define ASCII_TO_IDX(c) c - 97
+#define CHAR_TO_INDEX(c) ((int)c - (int)'a')
 
 
 typedef struct node node_t;
-struct node
-{
+struct node {
     char *key;
     void *value;
     node_t *children[TRIE_RADIX];
 };
 
-struct trie
-{
+struct trie {
     node_t *root;
 };
 
 
-static inline int isleaf(node_t *node)
-{
+static inline int isleaf(node_t *node) {
     // A NULL node is not considered a leaf node
-    if (node == NULL)
-    {
+    if (node == NULL) {
         return 0;
     }
 
-    for (int i = 0; i < TRIE_RADIX; i++)
-    {
-        if (node->children[i] != NULL)
-        {
+    for (int i = 0; i < TRIE_RADIX; i++) {
+        if (node->children[i] != NULL) {
             return 0;
         }
     }
@@ -43,11 +37,9 @@ static inline int isleaf(node_t *node)
     return 1;
 }
 
-static node_t *node_create(char *key, void *value)
-{
-    node_t *node = (node_t *)calloc(1, sizeof(node_t));
-    if (node == NULL)
-    {
+static node_t *node_create(char *key, void *value) {
+    node_t *node = (node_t *) calloc(1, sizeof(node_t));
+    if (node == NULL) {
         goto error;
     }
 
@@ -56,48 +48,38 @@ static node_t *node_create(char *key, void *value)
 
     return node;
 
-error:
+    error:
     return NULL;
-
 }
 
 
-void node_destroy(node_t *node)
-{
+void node_destroy(node_t *node) {
     free(node);
 }
 
-trie_t *trie_create()
-{
+trie_t *trie_create() {
 
-    trie_t *t = (trie_t *)calloc(1, sizeof(trie_t));
+    trie_t *t = (trie_t *) calloc(1, sizeof(trie_t));
 
-    if (t == NULL)
-    {
+    if (t == NULL) {
         goto error;
     }
 
     t->root = node_create(NULL, NULL);
     return t;
 
-error:
+    error:
     return NULL;
 }
 
-void _trie_destroy(node_t *node)
-{
+void _trie_destroy(node_t *node) {
     DEBUG_PRINT("%p", node->key);
-    if (isleaf(node))
-    {
+    if (isleaf(node)) {
         node_destroy(node);
-    }
-    else
-    {
+    } else {
         int i;
-        for (i = 0; i < TRIE_RADIX; i++)
-        {
-            if (node->children[i] != NULL)
-            {
+        for (i = 0; i < TRIE_RADIX; i++) {
+            if (node->children[i] != NULL) {
                 _trie_destroy(node->children[i]);
                 node->children[i] = NULL;
             }
@@ -109,35 +91,25 @@ void _trie_destroy(node_t *node)
 }
 
 
-void trie_destroy(trie_t *trie)
-{
+void trie_destroy(trie_t *trie) {
     _trie_destroy(trie->root);
     free(trie);
     trie = NULL;
 }
 
 
-int trie_insert(trie_t *trie, char *key, void *value)
-{
-
+int trie_insert(trie_t *trie, char *key, void *value) {
     node_t *iter = trie->root;
-
     // Only allow alphabet characters
-    for (int i = 0; key[i] != '\0'; i++)
-    {
-        DEBUG_PRINT("%c", key[i]);
-        if (!isalpha(key[i]))
-        {
+    for (int i = 0; key[i] != '\0'; i++) {
+        if (!isalpha(key[i])) {
             goto error;
         }
     }
-
     // Find the child indices
-    for (int i = 0; key[i] != '\0'; i++)
-    {
+    for (int i = 0; key[i] != '\0'; i++) {
         // We only use lowercase letters (case insensitive)
-        if (iter->children[ASCII_TO_IDX(tolower(key[i]))] == NULL)
-        {
+        if (iter->children[ASCII_TO_IDX(tolower(key[i]))] == NULL) {
             iter->children[ASCII_TO_IDX(tolower(key[i]))] = node_create(NULL, NULL);
         }
         iter = iter->children[ASCII_TO_IDX(tolower(key[i]))];
@@ -148,16 +120,28 @@ int trie_insert(trie_t *trie, char *key, void *value)
 
     return 0;
 
- error:
+    error:
     return -1;
 }
 
+char *trie_find(trie_t *trie, char *key) {
+    // Initialize variables:
+    int key_level;
+    int query_length = strlen(key);
+    int alphabetical_index;
+    struct node *node = trie->root;
 
-char *trie_find(trie_t *trie, char *key)
-{
-    // Implement this to work with your design.
-    // TODO implement
-    DEBUG_PRINT("trie find request %p", key);
+    // Tree traversal:
+    for (key_level = 0; key_level < query_length; key_level++){
+        alphabetical_index = CHAR_TO_INDEX(key[key_level]);
+        if (!node->children[alphabetical_index])
+            return NULL;
+        node = node->children[alphabetical_index];
+    }
+
+    if(node != NULL && isleaf(node)){
+        DEBUG_PRINT("Im here \n");
+        return node->value;
+    }
     return NULL;
 }
-
