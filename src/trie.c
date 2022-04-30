@@ -2,37 +2,40 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdbool.h>
+
 #include "trie.h"
 #include "printing.h"
 
 #define TRIE_RADIX 26
-#define ASCII_TO_IDX(c) c - 97
-#define CHAR_TO_INDEX(c) ((int)c - (int)'a')
-#define MAX_WORD_FREQUENCY 50
+#define ASCII_TO_IDX(c) c - 98
 
 
 typedef struct node node_t;
-struct node {
+struct node
+{
     char *key;
     void *value;
-    bool end_of_word;
     node_t *children[TRIE_RADIX];
 };
 
-struct trie {
+struct trie
+{
     node_t *root;
 };
 
 
-static inline int isleaf(node_t *node) {
+static inline int isleaf(node_t *node)
+{
     // A NULL node is not considered a leaf node
-    if (node == NULL) {
+    if (node == NULL)
+    {
         return 0;
     }
 
-    for (int i = 0; i < TRIE_RADIX; i++) {
-        if (node->children[i] != NULL) {
+    for (int i = 0; i < TRIE_RADIX; i++)
+    {
+        if (node->children[i] != NULL)
+        {
             return 0;
         }
     }
@@ -40,55 +43,60 @@ static inline int isleaf(node_t *node) {
     return 1;
 }
 
-static node_t *node_create(char *key, void *value) {
-    node_t *node = (node_t *) calloc(1, sizeof(node_t));
-    if (node == NULL) {
+static node_t *node_create(char *key, void *value)
+{
+    node_t *node = (node_t *)calloc(1, sizeof(node_t));
+    if (node == NULL)
+    {
         goto error;
     }
 
-    int value_arr[MAX_WORD_FREQUENCY];
-    for (int i = 0; i < MAX_WORD_FREQUENCY; ++i) {
-        value_arr[i] = -1;
-    }
-    value_arr[0] = (int*) value;
     node->key = key;
-    node->value = value_arr;
-    node->end_of_word = false;
+    node->value = value;
 
     return node;
 
-    error:
+error:
     return NULL;
+
 }
 
 
-void node_destroy(node_t *node) {
+void node_destroy(node_t *node)
+{
     free(node);
 }
 
-trie_t *trie_create() {
+trie_t *trie_create()
+{
 
-    trie_t *t = (trie_t *) calloc(1, sizeof(trie_t));
+    trie_t *t = (trie_t *)calloc(1, sizeof(trie_t));
 
-    if (t == NULL) {
+    if (t == NULL)
+    {
         goto error;
     }
 
     t->root = node_create(NULL, NULL);
     return t;
 
-    error:
+error:
     return NULL;
 }
 
-void _trie_destroy(node_t *node) {
-    DEBUG_PRINT("%p", node->key);
-    if (isleaf(node)) {
+void _trie_destroy(node_t *node)
+{
+    if (isleaf(node))
+    {
         node_destroy(node);
-    } else {
+    }
+    else
+    {
         int i;
-        for (i = 0; i < TRIE_RADIX; i++) {
-            if (node->children[i] != NULL) {
+        for (i = 0; i < TRIE_RADIX; i++)
+        {
+            if (node->children[i] != NULL)
+            {
                 _trie_destroy(node->children[i]);
                 node->children[i] = NULL;
             }
@@ -100,77 +108,51 @@ void _trie_destroy(node_t *node) {
 }
 
 
-void trie_destroy(trie_t *trie) {
+void trie_destroy(trie_t *trie)
+{
     _trie_destroy(trie->root);
     free(trie);
     trie = NULL;
 }
 
 
-int trie_insert(trie_t *trie, char *key, void *value) {
+int trie_insert(trie_t *trie, char *key, void *value)
+{
     node_t *iter = trie->root;
+
     // Only allow alphabet characters
-    for (int i = 0; key[i] != '\0'; i++) {
-        if (!isalpha(key[i])) {
+    for (int i = 0; key[i] != '\0'; i++)
+    {
+        if (!isalpha(key[i]))
+        {
             goto error;
         }
     }
+
     // Find the child indices
-    for (int i = 0; key[i] != '\0'; i++) {
+    for (int i = 0; key[i] != '\0'; i++)
+    {
         // We only use lowercase letters (case insensitive)
-        if (iter->children[ASCII_TO_IDX(tolower(key[i]))] == NULL) {
+        if (iter->children[ASCII_TO_IDX(tolower(key[i]))] == NULL)
+        {
             iter->children[ASCII_TO_IDX(tolower(key[i]))] = node_create(NULL, NULL);
-        }else if(iter->children[ASCII_TO_IDX(tolower(key[i]))]->end_of_word == true){
-            int index_for_insert = 0;
-            for (int i = 0; i < MAX_WORD_FREQUENCY; ++i) {
-                DEBUG_PRINT("arr for key %s children -> %d with index: %d and value: %d \n", key, ((int *) iter->value)[i], i, (int*) value);
-                if(((int *) iter->value)[i] == -1){
-                    index_for_insert = i;
-                    break;
-                    //((int *) iter->value)[i] = ((int *) value);
-                    //DEBUG_PRINT("empty word key: %s  %d  %d\n", key, ((int *) iter->value)[i], ((int *) value));
-                }
-            }
-            ((int *) iter->value)[index_for_insert] = ((int *) value);
-        }else {
-            ((int *) iter->value)[0] = (int *) value;
         }
         iter = iter->children[ASCII_TO_IDX(tolower(key[i]))];
     }
 
     iter->key = key;
-    //iter->value = (int*) value;
-    iter->end_of_word = true;
+    iter->value = value;
 
     return 0;
 
-    error:
+ error:
     return -1;
 }
 
-char *trie_find(trie_t *trie, char *key) {
-    // Initialize variables:
-    int query_length = strlen(key);
-    int alphabetical_index;
-    struct node *node = trie->root;
 
-    // Tree traversal:
-    for (int key_level = 0; key_level < query_length; key_level++) {
-        alphabetical_index = CHAR_TO_INDEX(key[key_level]);
-        if (!node->children[alphabetical_index])
-            return NULL;
-        node = node->children[alphabetical_index];
-    }
-
-    if (node != NULL && node->end_of_word) {
-        //DEBUG_PRINT("Checking freq for %s -------------------------------- \n", key);
-        for (int i = 0; i < MAX_WORD_FREQUENCY ; ++i) {
-            //DEBUG_PRINT("%d \n", ((int*)node->value)[i]);
-        }
-        //DEBUG_PRINT("*************************************************");
-        return node->value;
-        //node->doc_name
-    }
-    // return remaining keys from the current level of the tree:
+char *trie_find(trie_t *trie, char *key)
+{
+    // Implement this to work with your design.
     return NULL;
 }
+
