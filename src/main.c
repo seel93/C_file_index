@@ -98,31 +98,48 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    /*
     char *root_dir = argv[1];
     initialize_index(root_dir);
     char *a = "of";
     index_find(idx, a);
-
-
-
+    /*
     ui_init();
     main_program_loop();
      */
 
     // ADT operations testing ----------------------------------------
-    char *a = "foo";
+    //char *a = "foo";
     char *b = "bar";
     char *c = "get";
-    char *d = "rect";
-    char *e = "im";
-    char *f = "fucked";
+    char *d = "set";
     char *g = "foot";
     char *h = "ball";
     char *i = "footy";
     char *j = "table";
     char *k = "more";
     char *l = "major";
+
+    /*
+    trie_t *trie = trie_create();
+    trie_insert(trie, a, b);
+    trie_insert(trie, c, d);
+    trie_insert(trie, g, h);
+    trie_insert(trie, i, j);
+    trie_insert(trie, i, k);
+    trie_insert(trie, i, l);
+
+
+    char *res1 = trie_find(trie, "foo");
+    char *res2 = trie_find(trie, "get");
+    char *res4 = trie_find(trie, "foot");
+    char *res5 = trie_find(trie, "footy");
+
+
+    DEBUG_PRINT("%s \n", res1);
+    DEBUG_PRINT("%s \n", res2);
+    DEBUG_PRINT("%s \n", res4);
+    DEBUG_PRINT("%s \n", res5);
+    */
 
     //list_t *list = list_create(mystrcmp);
     //list_addlast(list, 'hei');
@@ -133,43 +150,6 @@ int main(int argc, char **argv) {
 
 
 
-
-    /*
-    */
-    trie_t *trie = trie_create();
-    trie_insert(trie, a, b);
-    //trie_insert(trie, c, d);
-    //trie_insert(trie, e, f);
-    //trie_insert(trie, g, h);
-    trie_insert(trie, i, j);
-    trie_insert(trie, i, k);
-    trie_insert(trie, i, l);
-
-
-    //char *res1 = trie_find(trie, "foo");
-    //char *res2 = trie_find(trie, "get");
-    //char *res3 = trie_find(trie, "im");
-    //char *res4 = trie_find(trie, "foot");
-    char *res5 = trie_find(trie, "footy");
-
-
-    //DEBUG_PRINT("%s \n", res1);
-    //DEBUG_PRINT("%s \n", res2);
-    //DEBUG_PRINT("%s \n", res3);
-    //DEBUG_PRINT("%s \n", res4);
-    DEBUG_PRINT("%s \n", res5);
-//    map_t *map = map_create(djb2, compare_strings);
-//    int n = map_haskey(map, a);
-//    int m = map_haskey(map, c);
-//
-//    printf("%p", n);
-//    printf("%p", m);
-//
-//    map_put(map, a, b);
-//    map_put(map, c, d);
-//    void *elem = map_get(map, a);
-//
-//    printf("%p", &elem);
 
     return 0;
 }

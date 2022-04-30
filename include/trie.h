@@ -29,5 +29,7 @@ int trie_insert(trie_t *trie, char *key, void *value);
  */
 char *trie_find(trie_t *t, char *prefix);
 
+char *trim_input(char *key);
+
 #endif
 
