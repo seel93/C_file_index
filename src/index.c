@@ -117,6 +117,7 @@ void index_add_document(index_t *idx, char *document_name, list_t *words) {
             }
         }
         if (valid_key) {
+            DEBUG_PRINT("trie insert %d \n", (int*) p);
             trie_insert(trie, key, p);
             word_index++;
         }
@@ -132,11 +133,9 @@ void index_add_document(index_t *idx, char *document_name, list_t *words) {
 search_result_t *index_find(index_t *idx, char *query) {
     // TODO: iterate over all keys(documents) and populate search result:
     list_iter_t *it = list_createiter(idx->document_list);
-    DEBUG_PRINT("looking for %s \n", query);
     while (list_hasnext(it)){
         DEBUG_PRINT("iterating over documents \n");
-        void *res = trie_find(map_get(idx->map, list_next(it)), query);
-        DEBUG_PRINT("%s", (char *) res);
+        trie_find(map_get(idx->map, list_next(it)), query);
     }
     // TODO: create search_result struct showing results for each document
     return NULL;

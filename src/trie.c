@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include "trie.h"
 #include "printing.h"
+#include "set.h"
+#include "common.h"
 
 #define TRIE_RADIX 26
 #define ASCII_TO_IDX(c) c - 97
@@ -46,13 +48,10 @@ static node_t *node_create(char *key, void *value) {
         goto error;
     }
 
-    int value_arr[MAX_WORD_FREQUENCY];
-    for (int i = 0; i < MAX_WORD_FREQUENCY; ++i) {
-        value_arr[i] = -1;
-    }
-    value_arr[0] = (int*) value;
     node->key = key;
-    node->value = value_arr;
+    set_t *set = set_create(compare_strings);
+    set_add(set, value);
+    node->value = set;
     node->end_of_word = false;
 
     return node;
@@ -121,29 +120,15 @@ int trie_insert(trie_t *trie, char *key, void *value) {
         if (iter->children[ASCII_TO_IDX(tolower(key[i]))] == NULL) {
             iter->children[ASCII_TO_IDX(tolower(key[i]))] = node_create(NULL, NULL);
         }else if(iter->children[ASCII_TO_IDX(tolower(key[i]))]->end_of_word == true){
-            int index_for_insert = 0;
-            for (int i = 0; i < MAX_WORD_FREQUENCY; ++i) {
-                DEBUG_PRINT("arr for key %s children -> %d with index: %d and value: %d \n", key, ((int *) iter->value)[i], i, (int*) value);
-                if(((int *) iter->value)[i] == -1){
-                    index_for_insert = i;
-                    break;
-                    //((int *) iter->value)[i] = ((int *) value);
-                    //DEBUG_PRINT("empty word key: %s  %d  %d\n", key, ((int *) iter->value)[i], ((int *) value));
-                }
-            }
-            ((int *) iter->value)[index_for_insert] = ((int *) value);
+            DEBUG_PRINT("adding elemnt: %d", (int *) value);
+            set_add(iter->children[i]->value, value);
         }else {
-            ((int *) iter->value)[0] = (int *) value;
+            iter = iter->children[ASCII_TO_IDX(tolower(key[i]))];
         }
-        iter = iter->children[ASCII_TO_IDX(tolower(key[i]))];
     }
-
     iter->key = key;
-    //iter->value = (int*) value;
     iter->end_of_word = true;
-
     return 0;
-
     error:
     return -1;
 }
@@ -157,17 +142,18 @@ char *trie_find(trie_t *trie, char *key) {
     // Tree traversal:
     for (int key_level = 0; key_level < query_length; key_level++) {
         alphabetical_index = CHAR_TO_INDEX(key[key_level]);
-        if (!node->children[alphabetical_index])
+        if (!node->children[alphabetical_index]){
             return NULL;
-        node = node->children[alphabetical_index];
+        }else{
+            node = node->children[alphabetical_index];
+        }
     }
 
     if (node != NULL && node->end_of_word) {
-        //DEBUG_PRINT("Checking freq for %s -------------------------------- \n", key);
-        for (int i = 0; i < MAX_WORD_FREQUENCY ; ++i) {
-            //DEBUG_PRINT("%d \n", ((int*)node->value)[i]);
+        set_iter_t *iter = set_create_iter(node->value);
+        while(set_has_next(iter)){
+            DEBUG_PRINT("here is an index: %d", (int *) set_next(iter));
         }
-        //DEBUG_PRINT("*************************************************");
         return node->value;
         //node->doc_name
     }

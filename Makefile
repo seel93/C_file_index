@@ -3,9 +3,10 @@ BIN=index
 
 MAP_SRC:=hashmap.c
 INDEX_SRC:=index.c
+SET_SRC:=set.c
 MAIN_SRC:=main.c
 
-SRC:=common.c ui.c linkedlist.c trie.c $(MAP_SRC) $(INDEX_SRC)
+SRC:=common.c ui.c linkedlist.c trie.c $(MAP_SRC) $(INDEX_SRC) $(SET_SRC)
 SRC:=$(patsubst %.c,src/%.c, $(SRC))
 
 INCLUDE=include
