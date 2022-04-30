@@ -120,7 +120,7 @@ int trie_insert(trie_t *trie, char *key, void *value) {
         // We only use lowercase letters (case insensitive)
         if (iter->children[ASCII_TO_IDX(tolower(key[i]))] == NULL) {
             iter->children[ASCII_TO_IDX(tolower(key[i]))] = node_create(NULL, NULL);
-        }else if(iter->children[ASCII_TO_IDX(tolower(key[i]))]->end_of_word == true){
+        }else if(iter->children[ASCII_TO_IDX(tolower(key[i]))]->end_of_word == true && isleaf(iter->children[ASCII_TO_IDX(tolower(key[i]))])){
             int index_for_insert = 0;
             for (int i = 0; i < MAX_WORD_FREQUENCY; ++i) {
                 DEBUG_PRINT("arr for key %s children -> %d with index: %d and value: %d \n", key, ((int *) iter->value)[i], i, (int*) value);
@@ -141,7 +141,7 @@ int trie_insert(trie_t *trie, char *key, void *value) {
     iter->key = key;
     //iter->value = (int*) value;
     iter->end_of_word = true;
-
+    DEBUG_PRINT("node created with key: %s value: %d --------------------------- \n", key, (int*) value);
     return 0;
 
     error:
