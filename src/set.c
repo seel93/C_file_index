@@ -41,7 +41,6 @@ void set_destroy(set_t *set) {
 }
 
 void set_sort(set_t *set) {
-    printf("sorting");
     list_sort(set->list);
     set->is_sorted = 1;
 }
