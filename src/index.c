@@ -10,7 +10,6 @@
 #include "list.h"
 #include "map.h"
 
-
 /*
  * you might need a struct for keeping track of documents
  */
@@ -135,7 +134,11 @@ search_result_t *index_find(index_t *idx, char *query) {
     list_iter_t *it = list_createiter(idx->document_list);
     while (list_hasnext(it)){
         DEBUG_PRINT("iterating over documents \n");
-        trie_find(map_get(idx->map, list_next(it)), query);
+        struct set_t *result_set = trie_find(map_get(idx->map, list_next(it)), query);
+        list_iter_t *iter = list_createiter(result_set);
+        while (list_hasnext(iter)) {
+            DEBUG_PRINT("here is an index: %d \n", (int *) list_next(iter));
+        }
     }
     // TODO: create search_result struct showing results for each document
     return NULL;

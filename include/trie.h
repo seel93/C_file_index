@@ -2,6 +2,7 @@
 #define TRIE_H
 
 #include "common.h"
+#include "list.h"
 
 typedef struct trie trie_t;
 
@@ -27,7 +28,7 @@ int trie_insert(trie_t *trie, char *key, void *value);
  * Finds a word in the trie.
  * IMPLEMENT THIS TO WORK WITH YOUR DESIGN.
  */
-char *trie_find(trie_t *t, char *prefix);
+list_t *trie_find(trie_t *t, char *prefix);
 
 char *trim_input(char *key);
 
