@@ -2,7 +2,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
-
 #include "index.h"
 #include "printing.h"
 #include "trie.h"
@@ -20,7 +19,6 @@
 struct index {
     map_t *map;
     list_t *document_list;
-    //trie_t *trie;
 };
 
 
@@ -29,9 +27,7 @@ struct index {
  * Implement this to work with the search result functions.
  */
 struct search_result {
-    // Denne må gjøre om!
-    int location;
-    int len;
+    map_t *result_map;
 };
 
 
@@ -54,7 +50,6 @@ index_t *index_create() {
     index_t *index = malloc(sizeof(index));
     index->map = map_create(cmp_strs, djb2);
     index->document_list = list_create(cmp_strs);
-    //index->map = trie_create();
     return index;
 }
 
@@ -99,9 +94,7 @@ void index_add_document(index_t *idx, char *document_name, list_t *words) {
     trie_t *trie = trie_create();
 
     int word_index = 0;
-    void *p;
     while (list_hasnext(it)) {
-        p = word_index;
         char *key = list_next(it);
         for (int i = 0; key[i] != '\0'; i++) {
             if (!isalpha(key[i])) {
@@ -116,12 +109,13 @@ void index_add_document(index_t *idx, char *document_name, list_t *words) {
             }
         }
         if (valid_key) {
-            DEBUG_PRINT("trie insert %d \n", (int*) p);
+            int *p = malloc(sizeof(int));
+            *p = word_index;
             trie_insert(trie, key, p);
             word_index++;
         }
     }
-    map_put(idx->map ,document_name, trie);
+    map_put(idx->map, document_name, trie);
 }
 
 
@@ -130,18 +124,23 @@ void index_add_document(index_t *idx, char *document_name, list_t *words) {
  * The result is returned as a search_result_t which is later used to iterate the results.
  */
 search_result_t *index_find(index_t *idx, char *query) {
-    // TODO: iterate over all keys(documents) and populate search result:
     list_iter_t *it = list_createiter(idx->document_list);
-    while (list_hasnext(it)){
-        DEBUG_PRINT("iterating over documents \n");
-        struct set_t *result_set = trie_find(map_get(idx->map, list_next(it)), query);
-        list_iter_t *iter = list_createiter(result_set);
-        while (list_hasnext(iter)) {
-            DEBUG_PRINT("here is an index: %d \n", (int *) list_next(iter));
-        }
+    search_result_t *result;
+    while (list_hasnext(it)) {
+        trie_t *trie = map_get(idx->map, list_next(it));
+        list_t *result_set = trie_find(trie, query);
+        //if (result_set != NULL) {
+        //list_iter_t *iter = list_createiter(result_set);
+        //while (list_hasnext(iter)) {
+        //    int *elem = list_next(iter);
+        //}
+        result->len = strlen(query);
+        result->location = result_set;
+        return result;
+        //}
     }
     // TODO: create search_result struct showing results for each document
-    return NULL;
+    return result;
 }
 
 

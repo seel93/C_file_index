@@ -24,13 +24,8 @@ struct trie {
     node_t *root;
 };
 
-int compare_ints(void *a, void *b)
-{
-    if ((int *) a < (int *) b)
-        return -1;
-    if ((int *) a > (int *)b)
-        return 1;
-    return 0;
+static inline int cmp_ints(void *a, void *b) {
+    return *((int *) a) - *((int *) b);
 }
 
 
@@ -56,9 +51,9 @@ static node_t *node_create(char *key, void *value) {
     }
 
     node->key = key;
-    list_t *list = list_create(compare_ints);
-    list_addlast(list, value);
-    node->value = (struct list_t *) list;
+    //list_t *list = list_create(cmp_ints);
+    //(struct list_t *) list;
+    node->value = value;
     node->end_of_word = false;
     return node;
 
@@ -87,7 +82,6 @@ trie_t *trie_create() {
 }
 
 void _trie_destroy(node_t *node) {
-    DEBUG_PRINT("%p", node->key);
     if (isleaf(node)) {
         node_destroy(node);
     } else {
@@ -125,19 +119,16 @@ int trie_insert(trie_t *trie, char *key, void *value) {
         // We only use lowercase letters (case insensitive)
         if (iter->children[ASCII_TO_IDX(tolower(key[i]))] == NULL) {
             iter->children[ASCII_TO_IDX(tolower(key[i]))] = node_create(NULL, NULL);
-            //} else if (iter->children[ASCII_TO_IDX(tolower(key[i]))]->end_of_word == true
-            //           && isleaf(iter->children[ASCII_TO_IDX(tolower(key[i]))])) {
-            //    DEBUG_PRINT("inserting for existing key %d", (int *) value);
-            //    set_add(iter->children[i]->value, value);
-            //}
         }
         iter = iter->children[ASCII_TO_IDX(tolower(key[i]))];
     }
     iter->key = key;
     iter->end_of_word = true;
-
-    DEBUG_PRINT("node created with key: %s value: %d \n", key, (int *) value);
-    if(!list_contains(iter->value, value)){
+    if(iter->value == NULL){
+        list_t *list = list_create(cmp_ints);
+        iter->value = list;
+        list_addlast(iter->value, value);
+    }else {
         list_addlast(iter->value, value);
     }
 
@@ -163,7 +154,6 @@ list_t *trie_find(trie_t *trie, char *key) {
 
     if (node != NULL && node->end_of_word) {
         return node->value;
-        //node->doc_name
     }
     // return remaining keys from the current level of the tree:
     return NULL;

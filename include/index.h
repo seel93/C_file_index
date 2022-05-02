@@ -16,7 +16,7 @@ typedef struct search_hit search_hit_t;
 struct search_hit
 {
     int location;
-    int len;
+    int len; // lengden på ordet
 };
 
 /*

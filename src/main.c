@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
 
     char *root_dir = argv[1];
     initialize_index(root_dir);
-    char *a = "of";
+    char *a = "flint";
     index_find(idx, a);
     /*
     ui_init();
@@ -127,29 +127,14 @@ int main(int argc, char **argv) {
     trie_insert(trie, i, j);
     trie_insert(trie, i, k);
     trie_insert(trie, i, l);
-
-
     char *res1 = trie_find(trie, "foo");
     char *res2 = trie_find(trie, "get");
     char *res4 = trie_find(trie, "foot");
     char *res5 = trie_find(trie, "footy");
-
-
     DEBUG_PRINT("%s \n", res1);
     DEBUG_PRINT("%s \n", res2);
     DEBUG_PRINT("%s \n", res4);
     DEBUG_PRINT("%s \n", res5);
     */
-
-    //list_t *list = list_create(mystrcmp);
-    //list_addlast(list, 'hei');
-    //list_addlast(list, 'hade');
-    //list_addlast(list, 'sneiks');
-    //index_t *index = index_create();
-    //index_add_document(index,'d', list);
-
-
-
-
     return 0;
 }
