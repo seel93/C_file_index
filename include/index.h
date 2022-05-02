@@ -19,6 +19,13 @@ struct search_hit
     int len; // lengden på ordet
 };
 
+
+/*
+ * Removes non-alphabetic symbols from string
+ */
+
+void *trim_input(char *key);
+
 /*
  * Creates a new, empty index.
  */

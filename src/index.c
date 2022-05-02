@@ -5,7 +5,6 @@
 #include "index.h"
 #include "printing.h"
 #include "trie.h"
-#include "common.h"
 #include "list.h"
 #include "map.h"
 
@@ -27,7 +26,7 @@ struct index {
  * Implement this to work with the search result functions.
  */
 struct search_result {
-    map_t *result_map;
+    list_t *result_list;
 };
 
 
@@ -60,27 +59,21 @@ index_t *index_create() {
  */
 void index_destroy(index_t *index) {
     map_destroy(index->map, NULL, NULL);
-    // TODO you might need to iterate over all keys in the map to destroy the trie's as well
-    //trie_destroy(index->trie);
-    //list_destroy(index->document_list);
     free(index);
 }
 
-
-// TODO add helpermethod for list_next(it)
-
-char *trim_input(char *key) {
-    int i, j;
-    char trimmed_key[strlen(key)];
-    for (i = 0, j = 0; key[i] != '\0'; i++) {
-        // TODO:  legg til tolower() her
-        if ((key[i] >= 'A' && key[i] <= 'Z') || (key[i] >= 'a' && key[i] <= 'z')) {
-            trimmed_key[j] = key[i];
-            j++;
+/*
+ * Removing non-aplhabetic symbols for char
+ */
+void removeChar(char *str, char garbage) {
+    if(!isspace(garbage)){
+        char *src, *dst;
+        for (src = dst = str; *src != '\0'; src++) {
+            *dst = *src;
+            if (*dst != garbage) dst++;
         }
+        *dst = '\0';
     }
-    trimmed_key[j] = '\0';
-    return trimmed_key;
 }
 
 /*
@@ -96,15 +89,11 @@ void index_add_document(index_t *idx, char *document_name, list_t *words) {
     int word_index = 0;
     while (list_hasnext(it)) {
         char *key = list_next(it);
+        bool valid_key = false;
         for (int i = 0; key[i] != '\0'; i++) {
             if (!isalpha(key[i])) {
-                trim_input(key);
-                break;
-            }
-        }
-        bool valid_key = false;
-        for (int i = 0; key[i] != '\0'; ++i) {
-            if (!isspace(key[i]) && isalpha(key[i])) {
+                removeChar(key, key[i]);
+            }else {
                 valid_key = true;
             }
         }
@@ -119,28 +108,35 @@ void index_add_document(index_t *idx, char *document_name, list_t *words) {
 }
 
 
+
+
+
+
+
 /*
  * Finds a query in the documents in the index.
  * The result is returned as a search_result_t which is later used to iterate the results.
  */
 search_result_t *index_find(index_t *idx, char *query) {
     list_iter_t *it = list_createiter(idx->document_list);
-    search_result_t *result;
+    search_result_t *search_result_list = malloc(sizeof(search_result_t));
+    search_result_list->result_list = list_create(cmp_ints);
     while (list_hasnext(it)) {
         trie_t *trie = map_get(idx->map, list_next(it));
-        list_t *result_set = trie_find(trie, query);
-        //if (result_set != NULL) {
-        //list_iter_t *iter = list_createiter(result_set);
-        //while (list_hasnext(iter)) {
-        //    int *elem = list_next(iter);
-        //}
-        result->len = strlen(query);
-        result->location = result_set;
-        return result;
-        //}
+        list_t *result_set = trie_find(trie, query, false);
+        if (result_set != NULL) {
+            list_iter_t *iter = list_createiter(result_set);
+            while (list_hasnext(iter)) {
+                int *elem = list_next(iter);
+                search_hit_t *hit = malloc(sizeof(search_hit_t));
+                hit->len = strlen(query);
+                hit->location = elem;
+                list_addlast(search_result_list->result_list, hit);
+            }
+        }
     }
-    // TODO: create search_result struct showing results for each document
-    return result;
+    DEBUG_PRINT("find complete with %d \n", list_size(search_result_list->result_list));
+    return search_result_list;
 }
 
 
@@ -150,7 +146,25 @@ search_result_t *index_find(index_t *idx, char *query) {
  * The output string MUST be null terminated.
  */
 char *autocomplete(index_t *idx, char *input, size_t size) {
-    return NULL;
+    list_iter_t *it = list_createiter(idx->document_list);
+    search_result_t *search_result_list = malloc(sizeof(search_result_t));
+    search_result_list->result_list = list_create(cmp_ints);
+    while (list_hasnext(it)) {
+        trie_t *trie = map_get(idx->map, list_next(it));
+        list_t *result_set = trie_find(trie, input, true);
+        if (result_set != NULL) {
+            list_iter_t *iter = list_createiter(result_set);
+            while (list_hasnext(iter)) {
+                int *elem = list_next(iter);
+                search_hit_t *hit = malloc(sizeof(search_hit_t));
+                hit->len = strlen(input);
+                hit->location = elem;
+                list_addlast(search_result_list->result_list, hit);
+            }
+        }
+    }
+    DEBUG_PRINT("find complete with %d \n", list_size(search_result_list->result_list));
+    return search_result_list;
 }
 
 
@@ -161,7 +175,7 @@ char *autocomplete(index_t *idx, char *input, size_t size) {
  * This function should return NULL if there are no more documents.
  */
 char **result_get_content(search_result_t *res) {
-    return NULL;
+    return res->result_list;
 }
 
 
@@ -170,15 +184,19 @@ char **result_get_content(search_result_t *res) {
  * Subsequent calls should return the length of the same document.
  */
 int result_get_content_length(search_result_t *res) {
-    return NULL;
+    return list_size(res->result_list);
 }
 
 
 /*
- * Get the next result from the current query.
- * The result should be returned as an int, which is the index in the document content.
+ * Get the next result_list from the current query.
+ * The result_list should be returned as an int, which is the index in the document content.
  * Should return NULL at the end of the search results.
  */
 search_hit_t *result_next(search_result_t *res) {
+    list_iter_t *iter = list_createiter(res->result_list);
+    if (list_hasnext(iter)) {
+        return list_next(iter);
+    }
     return NULL;
 }

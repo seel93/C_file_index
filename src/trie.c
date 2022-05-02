@@ -1,11 +1,10 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
 #include "trie.h"
-#include "printing.h"
 #include "list.h"
+#include "printing.h"
 
 #define TRIE_RADIX 26
 #define ASCII_TO_IDX(c) c - 97
@@ -51,8 +50,6 @@ static node_t *node_create(char *key, void *value) {
     }
 
     node->key = key;
-    //list_t *list = list_create(cmp_ints);
-    //(struct list_t *) list;
     node->value = value;
     node->end_of_word = false;
     return node;
@@ -67,7 +64,6 @@ void node_destroy(node_t *node) {
 }
 
 trie_t *trie_create() {
-
     trie_t *t = (trie_t *) calloc(1, sizeof(trie_t));
 
     if (t == NULL) {
@@ -124,6 +120,8 @@ int trie_insert(trie_t *trie, char *key, void *value) {
     }
     iter->key = key;
     iter->end_of_word = true;
+
+    // Check if node has any indexes for the key
     if(iter->value == NULL){
         list_t *list = list_create(cmp_ints);
         iter->value = list;
@@ -137,7 +135,9 @@ int trie_insert(trie_t *trie, char *key, void *value) {
     return -1;
 }
 
-list_t *trie_find(trie_t *trie, char *key) {
+
+// kanskje en boolean her for å avgjøre om det er find eller autocomplete
+list_t *trie_find(trie_t *trie, char *key, bool is_autocomplete) {
     // Initialize variables:
     int query_length = strlen(key);
     int alphabetical_index;
@@ -154,7 +154,17 @@ list_t *trie_find(trie_t *trie, char *key) {
 
     if (node != NULL && node->end_of_word) {
         return node->value;
+    }else if (query_length > 2 && is_autocomplete){
+        // return remaining keys from the current level of the tree:
+        list_t *suggested_words = list_create(cmp_ints);
+        for (int i = 0; i < TRIE_RADIX; ++i) {
+            if(node->children[i] != NULL && node->children[i]->key != NULL){
+                DEBUG_PRINT("how about this: %s \n", node->children[i]->key);
+                list_addlast(suggested_words, node->children[i]->key);
+            }
+        }
+        return suggested_words;
+    }else {
+        return NULL;
     }
-    // return remaining keys from the current level of the tree:
-    return NULL;
 }
