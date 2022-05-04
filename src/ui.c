@@ -249,7 +249,7 @@ static void ui_display_results_help(int rows, search_hit_t *cur_pos)
     {
         printw("CURRENT WORD: %d", cur_pos->location);
     }
-        
+
     move(0, 0);
 
     attron(COLOR_PAIR(2));
@@ -269,6 +269,7 @@ static void ui_display_results_content(char **content, int content_length, searc
     {
         if (strcmp(content[from], "\n") == 0)
         {
+            DEBUG_PRINT("failed because of cmp....  \n");
             break;
         }
     }
@@ -299,7 +300,6 @@ static void ui_display_results_content(char **content, int content_length, searc
 void ui_result(search_result_t *res)
 {
     int row, c;
-    
     char **content = result_get_content(res);
     int content_length = result_get_content_length(res);
     search_hit_t *cur_pos = result_next(res);
@@ -317,6 +317,7 @@ void ui_result(search_result_t *res)
     }
     else
     {
+        DEBUG_PRINT("before showing results \n");
         ui_display_results_content(content, content_length, cur_pos);
     }
 

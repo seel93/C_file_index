@@ -6,6 +6,7 @@
 #include "index.h"
 #include "printing.h"
 #include "ui.h"
+#include "map.h"
 
 
 index_t *idx = NULL;
@@ -88,8 +89,12 @@ int main(int argc, char **argv) {
 
     char *root_dir = argv[1];
     initialize_index(root_dir);
+
     char *a = "hamlet";
-    index_find(idx, a);
+    char *b = "flint";
+    search_result_t *res = index_find(idx, a);
+    search_result_t *res2 = index_find(idx, b);
+    result_get_content(res);
 
     /*
     ui_init();

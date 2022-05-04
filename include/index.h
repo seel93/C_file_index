@@ -21,12 +21,6 @@ struct search_hit
 
 
 /*
- * Removes non-alphabetic symbols from string
- */
-
-void *trim_input(char *key);
-
-/*
  * Creates a new, empty index.
  */
 index_t *index_create();

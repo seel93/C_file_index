@@ -156,6 +156,7 @@ list_t *trie_find(trie_t *trie, char *key) {
     node = traverse_trie(node, key);
 
     if (node != NULL && node->end_of_word) {
+        DEBUG_PRINT("found %d words \n", list_size(node->value));
         return node->value;
     }
     else {
@@ -180,5 +181,6 @@ list_t *trie_find_autcomplete(trie_t *trie, char *key, size_t size) {
         }
         i++;
     }
+    DEBUG_PRINT("number of suggestions: %d \n", list_size(suggested_words));
     return suggested_words;
 }

@@ -116,9 +116,9 @@ void index_add_document(index_t *idx, char *document_name, list_t *words) {
 search_result_t *index_find(index_t *idx, char *query) {
     list_iter_t *document_iterator = list_createiter(idx->document_list);
     search_result_t *search_result_object = malloc(sizeof(search_result_t));
+
     search_result_object->search_result_map = map_create(cmp_strs, djb2);
     search_result_object->document_list = list_create(cmp_strs);
-
 
     while (list_hasnext(document_iterator)) {
         char *document_name = list_next(document_iterator);
@@ -132,13 +132,14 @@ search_result_t *index_find(index_t *idx, char *query) {
                 int *elem = list_next(iter);
                 search_hit_t *hit = malloc(sizeof(search_hit_t));
                 hit->len = strlen(query);
-                hit->location = elem;
+                hit->location = *(int *) elem;
                 list_addlast(search_result_list, hit);
             }
             map_put(search_result_object->search_result_map, document_name, search_result_list);
             list_destroy(result_set);
         }
     }
+    DEBUG_PRINT("result complete with map object \n");
     return search_result_object;
 }
 
@@ -173,7 +174,16 @@ char *autocomplete(index_t *idx, char *input, size_t size) {
 char **result_get_content(search_result_t *res) {
     list_iter_t *document_iterator = list_createiter(res->document_list);
     if(list_hasnext(document_iterator)){
-        return map_get(res->search_result_map, list_next(document_iterator));
+        list_t *results_for_ui = map_get(res->search_result_map, list_next(document_iterator));
+        list_iter_t *results_for_ui_iterator = list_createiter(results_for_ui);
+        int arr_size = list_size(results_for_ui);
+        search_hit_t arr[arr_size];
+        for (int i = 0; i < list_size(results_for_ui); ++i) {
+            if(list_hasnext(results_for_ui_iterator)){
+                arr[i] = *(search_hit_t *) list_next(results_for_ui_iterator);
+            }
+        }
+        return arr;
     }
     return NULL;
 }
