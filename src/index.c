@@ -26,7 +26,8 @@ struct index {
  * Implement this to work with the search result functions.
  */
 struct search_result {
-    list_t *result_list;
+    map_t *search_result_map;
+    list_t *document_list;
 };
 
 
@@ -113,25 +114,32 @@ void index_add_document(index_t *idx, char *document_name, list_t *words) {
  * The result is returned as a search_result_t which is later used to iterate the results.
  */
 search_result_t *index_find(index_t *idx, char *query) {
-    list_iter_t *it = list_createiter(idx->document_list);
-    search_result_t *search_result_list = malloc(sizeof(search_result_t));
-    search_result_list->result_list = list_create(cmp_ints);
-    while (list_hasnext(it)) {
-        trie_t *trie = map_get(idx->map, list_next(it));
-        list_t *result_set = trie_find(trie, query, false);
+    list_iter_t *document_iterator = list_createiter(idx->document_list);
+    search_result_t *search_result_object = malloc(sizeof(search_result_t));
+    search_result_object->search_result_map = map_create(cmp_strs, djb2);
+    search_result_object->document_list = list_create(cmp_strs);
+
+
+    while (list_hasnext(document_iterator)) {
+        char *document_name = list_next(document_iterator);
+        trie_t *trie = map_get(idx->map, document_name);
+        list_t *result_set = trie_find(trie, query);
+        list_addlast(search_result_object->document_list, document_name);
         if (result_set != NULL) {
             list_iter_t *iter = list_createiter(result_set);
+            list_t *search_result_list = list_create(cmp_ints);
             while (list_hasnext(iter)) {
                 int *elem = list_next(iter);
                 search_hit_t *hit = malloc(sizeof(search_hit_t));
                 hit->len = strlen(query);
                 hit->location = elem;
-                list_addlast(search_result_list->result_list, hit);
+                list_addlast(search_result_list, hit);
             }
+            map_put(search_result_object->search_result_map, document_name, search_result_list);
+            list_destroy(result_set);
         }
     }
-    DEBUG_PRINT("find complete with %d \n", list_size(search_result_list->result_list));
-    return search_result_list;
+    return search_result_object;
 }
 
 
@@ -142,8 +150,6 @@ search_result_t *index_find(index_t *idx, char *query) {
  */
 char *autocomplete(index_t *idx, char *input, size_t size) {
     list_iter_t *it = list_createiter(idx->document_list);
-    search_result_t *search_result_list = malloc(sizeof(search_result_t));
-    search_result_list->result_list = list_create(cmp_ints);
     while (list_hasnext(it)) {
         trie_t *trie = map_get(idx->map, list_next(it));
         list_t *result_set = trie_find_autcomplete(trie, input, size);
@@ -165,7 +171,11 @@ char *autocomplete(index_t *idx, char *input, size_t size) {
  * This function should return NULL if there are no more documents.
  */
 char **result_get_content(search_result_t *res) {
-    return res->result_list;
+    list_iter_t *document_iterator = list_createiter(res->document_list);
+    if(list_hasnext(document_iterator)){
+        return map_get(res->search_result_map, list_next(document_iterator));
+    }
+    return NULL;
 }
 
 
@@ -174,7 +184,12 @@ char **result_get_content(search_result_t *res) {
  * Subsequent calls should return the length of the same document.
  */
 int result_get_content_length(search_result_t *res) {
-    return list_size(res->result_list);
+    list_iter_t *document_iterator = list_createiter(res->document_list);
+    if(list_hasnext(document_iterator)){
+        list_t *result_list = map_get(res->search_result_map, list_next(document_iterator));
+        return list_size(result_list);
+    }
+    return NULL;
 }
 
 
@@ -184,9 +199,18 @@ int result_get_content_length(search_result_t *res) {
  * Should return NULL at the end of the search results.
  */
 search_hit_t *result_next(search_result_t *res) {
-    list_iter_t *iter = list_createiter(res->result_list);
-    if (list_hasnext(iter)) {
-        return list_next(iter);
+    list_iter_t *document_iterator = list_createiter(res->document_list);
+    if(list_hasnext(document_iterator)){
+        list_t *result_list = map_get(res->search_result_map, list_next(document_iterator));
+        list_sort(result_list);
+        list_iter_t *result_list_iterator = list_createiter(result_list);
+        if(list_hasnext(result_list_iterator)){
+            search_hit_t *hit = list_next(result_list_iterator);
+            DEBUG_PRINT("%d", hit->location);
+            return hit;
+        }else {
+            return NULL;
+        }
     }
     return NULL;
 }

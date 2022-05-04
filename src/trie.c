@@ -150,39 +150,14 @@ static node_t *traverse_trie(node_t *node, char *key){
 }
 
 
-// kanskje en boolean her for å avgjøre om det er find eller autocomplete
-list_t *trie_find(trie_t *trie, char *key, bool is_autocomplete) {
+list_t *trie_find(trie_t *trie, char *key) {
     // Initialize variables:
-    int query_length = strlen(key);
-    int alphabetical_index;
     struct node *node = trie->root;
-
-
     node = traverse_trie(node, key);
-
-    // Tree traversal:
-    //for (int key_level = 0; key_level < query_length; key_level++) {
-    //    alphabetical_index = CHAR_TO_INDEX(key[key_level]);
-    //    if (!node->children[alphabetical_index]) {
-    //        return NULL;
-    //    }
-    //    node = node->children[alphabetical_index];
-    //}
-
 
     if (node != NULL && node->end_of_word) {
         return node->value;
     }
-    //else if (query_length > 2 && is_autocomplete) {
-    //    // return remaining keys from the current level of the tree:
-    //    list_t *suggested_words = list_create(cmp_ints);
-    //    for (int i = 0; i < TRIE_RADIX; ++i) {
-    //        if (node->children[i] != NULL && node->children[i]->key != NULL) {
-    //            list_addlast(suggested_words, node->children[i]->key);
-    //        }
-    //    }
-    //    return suggested_words;
-    //}
     else {
         return NULL;
     }
@@ -190,21 +165,8 @@ list_t *trie_find(trie_t *trie, char *key, bool is_autocomplete) {
 
 
 list_t *trie_find_autcomplete(trie_t *trie, char *key, size_t size) {
-    int alphabetical_index;
     struct node *node = trie->root;
-    int query_length = strlen(key);
-
     node = traverse_trie(node, key);
-
-    // Tree traversal:
-    //for (int key_level = 0; key_level < query_length; key_level++) {
-    //    alphabetical_index = CHAR_TO_INDEX(key[key_level]);
-    //    if (!node->children[alphabetical_index]) {
-    //        return NULL;
-    //    }
-    //    node = node->children[alphabetical_index];
-    //}
-
     list_t *suggested_words = list_create(cmp_ints);
     int i = 0;
     while (i < TRIE_RADIX) {

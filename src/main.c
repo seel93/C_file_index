@@ -88,11 +88,12 @@ int main(int argc, char **argv) {
 
     char *root_dir = argv[1];
     initialize_index(root_dir);
+    char *a = "hamlet";
+    index_find(idx, a);
+
+    /*
     ui_init();
     main_program_loop();
-    /*
-    char *a = "the";
-    index_find(idx, a);
     autocomplete(idx, a, strlen(a));
      */
     return 0;
