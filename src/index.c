@@ -66,7 +66,7 @@ void index_destroy(index_t *index) {
  * Removing non-aplhabetic symbols for char
  */
 void removeChar(char *str, char garbage) {
-    if(!isspace(garbage)){
+    if (!isspace(garbage)) {
         char *src, *dst;
         for (src = dst = str; *src != '\0'; src++) {
             *dst = *src;
@@ -93,7 +93,7 @@ void index_add_document(index_t *idx, char *document_name, list_t *words) {
         for (int i = 0; key[i] != '\0'; i++) {
             if (!isalpha(key[i])) {
                 removeChar(key, key[i]);
-            }else {
+            } else {
                 valid_key = true;
             }
         }
@@ -106,11 +106,6 @@ void index_add_document(index_t *idx, char *document_name, list_t *words) {
     }
     map_put(idx->map, document_name, trie);
 }
-
-
-
-
-
 
 
 /*
@@ -151,20 +146,15 @@ char *autocomplete(index_t *idx, char *input, size_t size) {
     search_result_list->result_list = list_create(cmp_ints);
     while (list_hasnext(it)) {
         trie_t *trie = map_get(idx->map, list_next(it));
-        list_t *result_set = trie_find(trie, input, true);
+        list_t *result_set = trie_find_autcomplete(trie, input, size);
         if (result_set != NULL) {
             list_iter_t *iter = list_createiter(result_set);
-            while (list_hasnext(iter)) {
-                int *elem = list_next(iter);
-                search_hit_t *hit = malloc(sizeof(search_hit_t));
-                hit->len = strlen(input);
-                hit->location = elem;
-                list_addlast(search_result_list->result_list, hit);
+            if (list_hasnext(iter)) {
+                return (char *) list_next(iter);
             }
         }
     }
-    DEBUG_PRINT("find complete with %d \n", list_size(search_result_list->result_list));
-    return search_result_list;
+    return "";
 }
 
 

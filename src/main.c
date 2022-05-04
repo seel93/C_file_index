@@ -10,18 +10,6 @@
 
 index_t *idx = NULL;
 
-static void printwords(char *prefix, list_t *words) {
-    list_iter_t *it;
-
-    it = list_createiter(words);
-    printf("%s: ", prefix);
-    while (list_hasnext(it)) {
-        printf("%s", list_next(it));
-    }
-    printf("\n");
-    list_destroyiter(it);
-}
-
 
 int mystrcmp(void *a, void *b) {
     return strcmp((const char *) a, (const char *) b);
@@ -100,41 +88,12 @@ int main(int argc, char **argv) {
 
     char *root_dir = argv[1];
     initialize_index(root_dir);
-    char *a = "flint";
-    index_find(idx, a);
-    /*
     ui_init();
     main_program_loop();
-     */
-
-    // ADT operations testing ----------------------------------------
-    //char *a = "foo";
-    char *b = "bar";
-    char *c = "get";
-    char *d = "set";
-    char *g = "foot";
-    char *h = "ball";
-    char *i = "footy";
-    char *j = "table";
-    char *k = "more";
-    char *l = "major";
-
     /*
-    trie_t *trie = trie_create();
-    trie_insert(trie, a, b);
-    trie_insert(trie, c, d);
-    trie_insert(trie, g, h);
-    trie_insert(trie, i, j);
-    trie_insert(trie, i, k);
-    trie_insert(trie, i, l);
-    char *res1 = trie_find(trie, "foo");
-    char *res2 = trie_find(trie, "get");
-    char *res4 = trie_find(trie, "foot");
-    char *res5 = trie_find(trie, "footy");
-    DEBUG_PRINT("%s \n", res1);
-    DEBUG_PRINT("%s \n", res2);
-    DEBUG_PRINT("%s \n", res4);
-    DEBUG_PRINT("%s \n", res5);
-    */
+    char *a = "the";
+    index_find(idx, a);
+    autocomplete(idx, a, strlen(a));
+     */
     return 0;
 }

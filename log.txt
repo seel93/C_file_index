@@ -1,4 +1,1 @@
-[1;33m[DEBUG][src/trie.c 160]: [0mhow about this: (null) 
-[1;33m[DEBUG][src/trie.c 160]: [0mhow about this: fling 
-[1;33m[DEBUG][src/trie.c 160]: [0mhow about this: Flint 
-[1;33m[DEBUG][src/index.c 133]: [0mfind complete with 3 
+[1;33m[DEBUG][src/index.c 153]: [0mp[1;33m[DEBUG][src/index.c 153]: [0mp[1;33m[DEBUG][src/index.c 153]: [0mp[1;33m[DEBUG][src/index.c 153]: [0mp[1;33m[DEBUG][src/index.c 153]: [0mp[1;33m[DEBUG][src/index.c 153]: [0m°[1;33m[DEBUG][src/index.c 153]: [0mÀ[1;33m[DEBUG][src/index.c 153]: [0m°[1;33m[DEBUG][src/index.c 153]: [0m[1;33m[DEBUG][src/index.c 153]: [0m[1;33m[DEBUG][src/index.c 153]: [0mp[1;33m[DEBUG][src/index.c 153]: [0mð[1;33m[DEBUG][src/index.c 153]: [0mp[1;33m[DEBUG][src/index.c 153]: [0m[1;33m[DEBUG][src/index.c 153]: [0m°

@@ -89,7 +89,7 @@ int test_trie()
     char *res;
     if (catch == true)
     {
-        res = trie_find(trie, "hel");
+        res = trie_find(trie, "hel", true);
     }
 
     if (caught_segfault == true)

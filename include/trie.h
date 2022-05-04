@@ -29,7 +29,9 @@ int trie_insert(trie_t *trie, char *key, void *value);
  * Finds a word in the trie.
  * IMPLEMENT THIS TO WORK WITH YOUR DESIGN.
  */
-list_t *trie_find(trie_t *t, char *prefix, bool is_autocomplete);
+list_t *trie_find(trie_t *trie, char *prefix, bool is_autocomplete);
+
+list_t *trie_find_autcomplete(trie_t *trie, char *prefix, size_t size);
 
 
 #endif
