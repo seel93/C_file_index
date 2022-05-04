@@ -309,6 +309,8 @@ void ui_result(search_result_t *res)
 
     ui_display_results_help(row, cur_pos);
 
+    DEBUG_PRINT("from ui cur_pos: %d \n", cur_pos->location);
+
     if (content == NULL || cur_pos == NULL)
     {
         attron(COLOR_PAIR(1));

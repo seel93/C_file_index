@@ -8,6 +8,8 @@
 #include "list.h"
 #include "map.h"
 
+
+
 /*
  * you might need a struct for keeping track of documents
  */
@@ -17,6 +19,7 @@
  */
 struct index {
     map_t *map;
+    map_t *document_map;
     list_t *document_list;
 };
 
@@ -28,6 +31,8 @@ struct index {
 struct search_result {
     map_t *search_result_map;
     list_t *document_list;
+    list_t *document_words;
+    list_iter_t *document_iterator;
 };
 
 
@@ -49,6 +54,7 @@ static inline int cmp_strs(void *a, void *b) {
 index_t *index_create() {
     index_t *index = malloc(sizeof(index));
     index->map = map_create(cmp_strs, djb2);
+    index->document_map = map_create(cmp_strs, djb2);
     index->document_list = list_create(cmp_strs);
     return index;
 }
@@ -60,6 +66,7 @@ index_t *index_create() {
  */
 void index_destroy(index_t *index) {
     map_destroy(index->map, NULL, NULL);
+    list_destroy(index->document_list);
     free(index);
 }
 
@@ -86,6 +93,7 @@ void index_add_document(index_t *idx, char *document_name, list_t *words) {
     list_addlast(idx->document_list, document_name);
     it = list_createiter(words);
     trie_t *trie = trie_create();
+    list_t *words_from_document = list_create(cmp_strs);
 
     int word_index = 0;
     while (list_hasnext(it)) {
@@ -102,10 +110,12 @@ void index_add_document(index_t *idx, char *document_name, list_t *words) {
             int *p = malloc(sizeof(int));
             *p = word_index;
             trie_insert(trie, key, p);
+            list_addlast(words_from_document ,key);
             word_index++;
         }
     }
     map_put(idx->map, document_name, trie);
+    map_put(idx->document_map, document_name, words_from_document);
 }
 
 
@@ -122,6 +132,7 @@ search_result_t *index_find(index_t *idx, char *query) {
 
     while (list_hasnext(document_iterator)) {
         char *document_name = list_next(document_iterator);
+        search_result_object->document_words = map_get(idx->document_map, document_name);
         trie_t *trie = map_get(idx->map, document_name);
         list_t *result_set = trie_find(trie, query);
         list_addlast(search_result_object->document_list, document_name);
@@ -139,6 +150,7 @@ search_result_t *index_find(index_t *idx, char *query) {
             list_destroy(result_set);
         }
     }
+    search_result_object->document_iterator = list_createiter(search_result_object->document_list);
     DEBUG_PRINT("result complete with map object \n");
     return search_result_object;
 }
@@ -172,15 +184,18 @@ char *autocomplete(index_t *idx, char *input, size_t size) {
  * This function should return NULL if there are no more documents.
  */
 char **result_get_content(search_result_t *res) {
-    list_iter_t *document_iterator = list_createiter(res->document_list);
-    if(list_hasnext(document_iterator)){
-        list_t *results_for_ui = map_get(res->search_result_map, list_next(document_iterator));
-        list_iter_t *results_for_ui_iterator = list_createiter(results_for_ui);
-        int arr_size = list_size(results_for_ui);
-        search_hit_t arr[arr_size];
-        for (int i = 0; i < list_size(results_for_ui); ++i) {
+
+    if(list_hasnext(res->document_iterator)){
+        list_iter_t *results_for_ui_iterator = list_createiter(res->document_words);
+
+        int arr_size = list_size(res->document_words);
+        char **arr;
+        arr = calloc(list_size(res->document_words), sizeof (char *));
+
+
+        for (int i = 0; i < arr_size; ++i) {
             if(list_hasnext(results_for_ui_iterator)){
-                arr[i] = *(search_hit_t *) list_next(results_for_ui_iterator);
+                arr[i] = list_next(results_for_ui_iterator);
             }
         }
         return arr;
@@ -194,9 +209,8 @@ char **result_get_content(search_result_t *res) {
  * Subsequent calls should return the length of the same document.
  */
 int result_get_content_length(search_result_t *res) {
-    list_iter_t *document_iterator = list_createiter(res->document_list);
-    if(list_hasnext(document_iterator)){
-        list_t *result_list = map_get(res->search_result_map, list_next(document_iterator));
+    if(list_hasnext(res->document_iterator)){
+        list_t *result_list = map_get(res->search_result_map, list_next(res->document_iterator));
         return list_size(result_list);
     }
     return NULL;
@@ -209,14 +223,12 @@ int result_get_content_length(search_result_t *res) {
  * Should return NULL at the end of the search results.
  */
 search_hit_t *result_next(search_result_t *res) {
-    list_iter_t *document_iterator = list_createiter(res->document_list);
-    if(list_hasnext(document_iterator)){
-        list_t *result_list = map_get(res->search_result_map, list_next(document_iterator));
+    if(list_hasnext(res->document_iterator)){
+        list_t *result_list = map_get(res->search_result_map, list_next(res->document_iterator));
         list_sort(result_list);
         list_iter_t *result_list_iterator = list_createiter(result_list);
         if(list_hasnext(result_list_iterator)){
             search_hit_t *hit = list_next(result_list_iterator);
-            DEBUG_PRINT("%d", hit->location);
             return hit;
         }else {
             return NULL;

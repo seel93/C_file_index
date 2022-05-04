@@ -89,17 +89,21 @@ int main(int argc, char **argv) {
 
     char *root_dir = argv[1];
     initialize_index(root_dir);
-
-    char *a = "hamlet";
-    char *b = "flint";
-    search_result_t *res = index_find(idx, a);
-    search_result_t *res2 = index_find(idx, b);
-    result_get_content(res);
-
-    /*
     ui_init();
     main_program_loop();
-    autocomplete(idx, a, strlen(a));
+
+
+
+    /*
+    char *a = "hamlet";
+    search_result_t *res = index_find(idx, a);
+    result_get_content(res);
+    char *b = "flint";
+    search_hit_t *hit = result_next(res);
+    DEBUG_PRINT("%d \n", hit->location);
+    search_hit_t *hit2 = result_next(res);
+    DEBUG_PRINT("%d \n", hit2->location);
+    DEBUG_PRINT("res %d", result_get_content_length(res));
      */
     return 0;
 }
