@@ -1,8 +1,0 @@
-[1;33m[DEBUG][src/trie.c 184]: [0mnumber of suggestions: 0 
-[1;33m[DEBUG][src/trie.c 184]: [0mnumber of suggestions: 0 
-[1;33m[DEBUG][src/trie.c 184]: [0mnumber of suggestions: 1 
-[1;33m[DEBUG][src/trie.c 159]: [0mfound 462 words 
-[1;33m[DEBUG][src/trie.c 159]: [0mfound 11 words 
-[1;33m[DEBUG][src/index.c 159]: [0mresult complete with map object 
-[1;33m[DEBUG][src/ui.c 312]: [0mfrom ui cur_pos: 1994 
-[1;33m[DEBUG][src/ui.c 322]: [0mbefore showing results 

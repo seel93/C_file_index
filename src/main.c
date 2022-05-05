@@ -6,10 +6,10 @@
 #include "index.h"
 #include "printing.h"
 #include "ui.h"
-#include "map.h"
 
 
 index_t *idx = NULL;
+document_t *doc = NULL;
 
 
 int mystrcmp(void *a, void *b) {
@@ -42,6 +42,7 @@ void initialize_index(char *root_dir) {
 
 
     idx = index_create();
+    doc = document_create();
     if (idx == NULL) {
         ERROR_PRINT("Failed to create index\n");
     }
@@ -54,7 +55,7 @@ void initialize_index(char *root_dir) {
 
         words = list_create(mystrcmp);
         tokenize_file(fullpath, words);
-        index_add_document(idx, relpath, words);
+        index_add_document(idx, relpath, words, doc);
 
         free(fullpath);
 
@@ -73,6 +74,7 @@ void main_program_loop() {
 
     while (1) {
         char *query = ui_main(idx);
+        DEBUG_PRINT("seaching for %s \n", query);
         search_result_t *res = index_find(idx, query);
         ui_result(res);
     }
@@ -89,14 +91,32 @@ int main(int argc, char **argv) {
 
     char *root_dir = argv[1];
     initialize_index(root_dir);
+
+    //char *a = "hamlet";
+    //search_result_t *res = index_find(idx, a);
+    //search_result_t *res = index_find(idx, a);
+    //result_get_content(res);
+    //result_get_content(res);
+    //search_hit_t *hit = result_next(res);
+    //char **arr2 = result_get_content(res);
+    //DEBUG_PRINT("%d \n", hit->location);
+    //search_hit_t *hit2 = result_next(res);
+    //DEBUG_PRINT("%d", hit2->location);
+
+    //for (int i = 0; i < get_list_size(res); ++i) {
+    //    DEBUG_PRINT("%s \n", arr2[i]);
+    //}
+
+    //DEBUG_PRINT("%s \n", arr[hit->location]);
+
+
+
     ui_init();
     main_program_loop();
 
 
 
     /*
-    char *a = "hamlet";
-    search_result_t *res = index_find(idx, a);
     result_get_content(res);
     char *b = "flint";
     search_hit_t *hit = result_next(res);

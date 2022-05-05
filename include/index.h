@@ -4,6 +4,9 @@
 #include "list.h"
 #include "trie.h"
 
+
+typedef struct document document_t;
+
 typedef struct index index_t;
 
 typedef struct search_result search_result_t;
@@ -25,6 +28,8 @@ struct search_hit
  */
 index_t *index_create();
 
+document_t *document_create();
+
 
 /*
  * Destroys the given index.  Subsequently accessing the index will
@@ -37,7 +42,7 @@ void index_destroy(index_t *index);
  * Adds all the words from the given document to the given index.
  * This function is responsible for deallocating the list and the document name after use.
  */
-void index_add_document(index_t *idx, char *document_name, list_t *words);
+void index_add_document(index_t *idx, char *document_name, list_t *words, document_t *document);
 
 
 /*

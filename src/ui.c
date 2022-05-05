@@ -303,13 +303,13 @@ void ui_result(search_result_t *res)
     char **content = result_get_content(res);
     int content_length = result_get_content_length(res);
     search_hit_t *cur_pos = result_next(res);
+    DEBUG_PRINT("content on index 0: %s \n", content[0]);
 
     row = getmaxy(stdscr);
     clear();
 
     ui_display_results_help(row, cur_pos);
 
-    DEBUG_PRINT("from ui cur_pos: %d \n", cur_pos->location);
 
     if (content == NULL || cur_pos == NULL)
     {
