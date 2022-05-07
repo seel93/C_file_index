@@ -9,7 +9,7 @@ void ui_init();
 
 void ui_deinit();
 
-char *ui_main(index_t *idx);
+char *ui_main(index_t *idx, document_t *document);
 
 void ui_result(search_result_t *res);
 

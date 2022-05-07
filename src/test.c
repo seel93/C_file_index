@@ -147,6 +147,7 @@ int test_index()
     // Test Create
     TEST_PRINT("index_create(): ");
     index_t *idx = index_create();
+    document_t *document = document_create();
     num_failed += (idx != NULL) ? ok() : failed("Index is NULL");
 
     // Test insert document
@@ -156,7 +157,7 @@ int test_index()
     {
         list_t *words = list_create(cmpfunc);
         tokenize_file("data/hamlet.txt", words);
-        index_add_document(idx, "hamlet", words);
+        index_add_document(idx, "hamlet", words, document);
     }
 
     if (caught_segfault == true)
@@ -178,7 +179,7 @@ int test_index()
     sigsetjmp(jbuf, !0);
     if (catch == true)
     {
-        sr = index_find(idx, "hamlet");
+        sr = index_find(idx, "hamlet", document);
     }
 
     if (caught_segfault == true)
@@ -206,7 +207,7 @@ int test_index()
     sigsetjmp(jbuf, !0);
     if (catch == true)
     {
-        completed = autocomplete(idx, w, 4);
+        completed = autocomplete(idx, w, 4, document);
     }
 
     if (caught_segfault == true)

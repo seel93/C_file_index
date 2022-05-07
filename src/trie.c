@@ -23,6 +23,7 @@ struct trie {
     node_t *root;
 };
 
+
 static inline int cmp_ints(void *a, void *b) {
     return *((int *) a) - *((int *) b);
 }
@@ -42,6 +43,7 @@ static inline int isleaf(node_t *node) {
 
     return 1;
 }
+
 
 static node_t *node_create(char *key, void *value) {
     node_t *node = (node_t *) calloc(1, sizeof(node_t));
@@ -127,7 +129,9 @@ int trie_insert(trie_t *trie, char *key, void *value) {
         iter->value = list;
         list_addlast(iter->value, value);
     } else {
-        list_addlast(iter->value, value);
+        if(!list_contains(iter->value, value)){
+            list_addlast(iter->value, value);
+        }
     }
 
     return 0;
@@ -136,6 +140,7 @@ int trie_insert(trie_t *trie, char *key, void *value) {
 }
 
 static node_t *traverse_trie(node_t *node, char *key){
+    // Initialize variables:
     int alphabetical_index;
     int query_length = strlen(key);
 
@@ -165,6 +170,7 @@ list_t *trie_find(trie_t *trie, char *key) {
 
 
 list_t *trie_find_autcomplete(trie_t *trie, char *key, size_t size) {
+    // Initialize variables:
     struct node *node = trie->root;
     node = traverse_trie(node, key);
     list_t *suggested_words = list_create(cmp_ints);
@@ -182,3 +188,4 @@ list_t *trie_find_autcomplete(trie_t *trie, char *key, size_t size) {
     }
     return suggested_words;
 }
+

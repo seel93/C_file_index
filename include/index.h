@@ -37,6 +37,10 @@ document_t *document_create();
  */
 void index_destroy(index_t *index);
 
+/*
+ * Destroys the given document
+ */
+void document_destroy(document_t *document);
 
 /*
  * Adds all the words from the given document to the given index.
@@ -49,7 +53,7 @@ void index_add_document(index_t *idx, char *document_name, list_t *words, docume
  * Finds a query in the documents in the index.
  * The result is returned as a search_result_t which is later used to iterate the results.
  */
-search_result_t *index_find(index_t *idx, char *query);
+search_result_t *index_find(index_t *idx, char *query, document_t *document);
 
 
 /*
@@ -57,7 +61,7 @@ search_result_t *index_find(index_t *idx, char *query);
  * The input string is NULL terminated and contains size letters (excluding null termination).
  * The output string MUST be null terminated.
  */ 
-char *autocomplete(index_t *idx, char *input, size_t size);
+char *autocomplete(index_t *idx, char *input, size_t size, document_t *document);
 
 
 

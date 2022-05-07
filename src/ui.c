@@ -91,7 +91,7 @@ void ui_display_input(char *input, char *suggestion, int sindex)
     refresh();
 }
 
-char *ui_main(index_t *idx)
+char *ui_main(index_t *idx, document_t *document)
 {
     int row, c;
     char *input = (char *)calloc(201, sizeof(char));
@@ -211,7 +211,7 @@ char *ui_main(index_t *idx)
             input[inpos] = '\0';
             
             // Get a suggestion from a given dictionary
-            suggestion = autocomplete(idx, (char *)&input[spos], cur_word_len);
+            suggestion = autocomplete(idx, (char *)&input[spos], cur_word_len, document);
         }
         else
         {
@@ -303,8 +303,6 @@ void ui_result(search_result_t *res)
     char **content = result_get_content(res);
     int content_length = result_get_content_length(res);
     search_hit_t *cur_pos = result_next(res);
-    DEBUG_PRINT("content on index 0: %s \n", content[0]);
-
     row = getmaxy(stdscr);
     clear();
 
@@ -319,7 +317,6 @@ void ui_result(search_result_t *res)
     }
     else
     {
-        DEBUG_PRINT("before showing results \n");
         ui_display_results_content(content, content_length, cur_pos);
     }
 

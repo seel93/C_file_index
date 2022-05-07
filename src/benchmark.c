@@ -19,7 +19,7 @@ const char *example[15] = {
         " ",
         "dolor",
         " ",
-        "sit"
+        "sit",
         " ",
         "amet",
         ",",
@@ -84,6 +84,7 @@ int main(int argc, char **argv)
     for (int i = 0; i < nruns; i++)
     {
         index_t *idx = index_create();
+        document_t *document = document_create();
         if (idx == NULL)
         {
             ERROR_PRINT("Could not allocate index");
@@ -95,14 +96,14 @@ int main(int argc, char **argv)
 
         // Test inserts
         before = gettime();
-        index_add_document(idx, doc_name, words);
+        index_add_document(idx, doc_name, words, document);
         after = gettime();
         fprintf(stdout, "%d %llu %lf ", nwords, after - before, (double)(after - before) / nwords);
         avg_add += (double)(after - before) / nwords;
 
         // Test find on existing word
         before = gettime();
-        index_find(idx, example[after % 15]);
+        index_find(idx, example[after % 15], document);
         after = gettime();
         fprintf(stdout, "%llu ", after - before);
 
@@ -110,7 +111,7 @@ int main(int argc, char **argv)
 
         // Test find on non-existing word
         before = gettime();
-        index_find(idx, "noexist");
+        index_find(idx, "noexist", document);
         after = gettime();
         fprintf(stdout, "%llu\n", after - before);
 
@@ -120,6 +121,7 @@ int main(int argc, char **argv)
 
         nwords *= 2;
         index_destroy(idx);
+        document_destroy(document);
     }
 
     TEST_PRINT("Average time to insert a single word: %lf µs\n", (double)avg_add / nruns);
