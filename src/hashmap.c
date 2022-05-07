@@ -29,6 +29,7 @@ struct map
     int numbuckets;
 };
 
+
 static mapentry_t *newentry(void *key, void *value, mapentry_t *next)
 {
     mapentry_t *e;
@@ -47,6 +48,7 @@ static mapentry_t *newentry(void *key, void *value, mapentry_t *next)
 end:
     return e;
 }
+
 
 map_t *map_create(cmpfunc_t cmpfunc, hashfunc_t hashfunc)
 {
@@ -78,6 +80,7 @@ map_error:
     return NULL;
 }
 
+
 static void freebuckets(int numbuckets, mapentry_t **buckets, void (*destroy_key)(void *), void (*destroy_val)(void *))
 {
     int b;
@@ -103,11 +106,13 @@ static void freebuckets(int numbuckets, mapentry_t **buckets, void (*destroy_key
     free(buckets);
 }
 
+
 void map_destroy(map_t *map, void (*destroy_key)(void *), void (*destroy_val)(void *))
 {
     freebuckets(map->numbuckets, map->buckets, destroy_key, destroy_val);    
     free(map);
 }
+
 
 static void growmap(map_t *map)
 {
@@ -133,6 +138,7 @@ static void growmap(map_t *map)
     freebuckets(oldnumbuckets, oldbuckets, NULL, NULL);
 }   
 
+
 void map_put(map_t *map, void *key, void *value)
 {
     unsigned long hash = map->hashfunc(key);
@@ -156,6 +162,7 @@ void map_put(map_t *map, void *key, void *value)
     }
 }
 
+
 int map_haskey(map_t *map, void *key)
 {
     unsigned long hash = map->hashfunc(key);
@@ -176,6 +183,7 @@ int map_haskey(map_t *map, void *key)
     }
 }
 
+
 void *map_get(map_t *map, void *key)
 {
     unsigned long hash = map->hashfunc(key);
@@ -195,6 +203,7 @@ void *map_get(map_t *map, void *key)
         return e->value;
     }
 }
+
 
 unsigned long djb2(void *bytes)
 {

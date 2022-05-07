@@ -21,8 +21,13 @@
 #include <sys/time.h>
 #include <ctype.h>
 
-/*
- * parse_word takes a word token and reads out any special characters from it.
+/**
+ * 
+ * @brief Takes a word token and reads out any special characters from it.
+ * 
+ * @param token Pointer to the token to parse.
+ * @param l Pointer to the output list to add the parsed word to.
+ * 
  * The special characters are treated as their own words.
  * Special characters and valid words are extracted and placed in the given list as individual elements.
  */
@@ -93,11 +98,6 @@ error:
 }
 
 
-/*
- * tokenize_file opens and reads the given filename, including special characters.
- *
- * 
- */
 void tokenize_file (const char *filename, list_t *list)
 {
     FILE *fp;
@@ -169,6 +169,7 @@ error:
     return;
 }
 
+
 char *concatenate_strings (int num_strings, const char *first, ...)
 {
     int i, len;
@@ -227,6 +228,7 @@ static int dir_filter (const struct dirent *entry)
     return (strcmp (filename, ".") && strcmp (filename, ".."));
 }
 
+
 static int file_filter (const struct dirent *entry)
 {
     struct stat statbuf;
@@ -237,6 +239,7 @@ static int file_filter (const struct dirent *entry)
     /* Exclude entries that are not regular files */
     return ((entry->d_type == DT_REG) || S_ISREG (statbuf.st_mode));
 }
+
 
 static void _find_files (list_t *list, const char *dirname)
 {
@@ -277,6 +280,7 @@ static void _find_files (list_t *list, const char *dirname)
     free (dirlist);
 }
 
+
 list_t *find_files (const char *root_dir)
 {
     char cwd[512];
@@ -299,10 +303,12 @@ end:
     return files;
 }
 
+
 int compare_strings(void *a, void *b)
 {
     return strcmp(a, b);
 }
+
 
 unsigned long hash_string(void *str)
 {
@@ -315,6 +321,7 @@ unsigned long hash_string(void *str)
     return hash;
 }
 
+
 int compare_pointers(void *a, void *b)
 {
     if (a < b)
@@ -323,6 +330,7 @@ int compare_pointers(void *a, void *b)
         return 1;
     return 0;	
 }
+
 
 int is_valid_directory (const char *dirpath)
 {
@@ -352,6 +360,7 @@ int is_valid_directory (const char *dirpath)
     return 1;
 }
 
+
 int is_valid_file (const char *filepath)
 {
     struct stat s;
@@ -373,6 +382,7 @@ int is_valid_file (const char *filepath)
 
     return 1;
 }
+
 
 unsigned long long gettime()
 {
