@@ -66,6 +66,8 @@ int list_contains(list_t *list, void *elem);
  */
 void list_sort(list_t *list);
 
+void *get_element_for_head(list_t *list);
+
 /*
  * The type of list iterators.
  */

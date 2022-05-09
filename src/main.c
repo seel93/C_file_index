@@ -81,7 +81,6 @@ void main_program_loop() {
 
 
 int main(int argc, char **argv) {
-
     // Initial program
     if (argc != 2) {
         ERROR_PRINT("Usage: %s <root-dir>\n", argv[0]);
@@ -91,45 +90,8 @@ int main(int argc, char **argv) {
     char *root_dir = argv[1];
     initialize_index(root_dir);
 
-    char *a = "the";
-    search_result_t *res = index_find(idx, a, document);
-    search_result_t *res_auto = index_find(idx, a, document);
-    search_hit_t *hit = result_next(res);
-    search_hit_t *hit2 = result_next(res);
-    result_get_content(res);
-    search_hit_t *hit3 = result_next(res);
-    search_hit_t *hit4 = result_next(res);
-    search_hit_t *hit5 = result_next(res);
+    ui_init();
+    main_program_loop();
 
-
-
-
-
-    //search_result_t *res = index_find(idx, a);
-    //result_get_content(res);
-    //char **arr2 = result_get_content(res);
-
-    //for (int i = 0; i < get_list_size(res); ++i) {
-    //    DEBUG_PRINT("%s \n", arr2[i]);
-    //}
-
-    //DEBUG_PRINT("%s \n", arr[hit->location]);
-
-
-
-    //ui_init();
-    //main_program_loop();
-
-
-
-    /*
-    result_get_content(res);
-    char *b = "flint";
-    search_hit_t *hit = result_next(res);
-    DEBUG_PRINT("%d \n", hit->location);
-    search_hit_t *hit2 = result_next(res);
-    DEBUG_PRINT("%d \n", hit2->location);
-    DEBUG_PRINT("res %d", result_get_content_length(res));
-     */
     return 0;
 }

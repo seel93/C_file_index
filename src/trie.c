@@ -28,6 +28,10 @@ static inline int cmp_ints(void *a, void *b) {
     return *((int *) a) - *((int *) b);
 }
 
+static inline int cmp_strs(void *a, void *b) {
+    return strcasecmp((const char *) a, (const char *) b);
+}
+
 
 static inline int isleaf(node_t *node) {
     // A NULL node is not considered a leaf node
@@ -129,9 +133,10 @@ int trie_insert(trie_t *trie, char *key, void *value) {
         iter->value = list;
         list_addlast(iter->value, value);
     } else {
-        if(!list_contains(iter->value, value)){
+        // Check for uniqueness removed for performance reasons
+        //if(!list_contains(iter->value, value)){}
             list_addlast(iter->value, value);
-        }
+
     }
 
     return 0;
@@ -139,11 +144,12 @@ int trie_insert(trie_t *trie, char *key, void *value) {
     return -1;
 }
 
-static node_t *traverse_trie(node_t *node, char *key){
+static node_t *traverse_trie(node_t *node, char *key) {
     // Initialize variables:
     int alphabetical_index;
     int query_length = strlen(key);
 
+    // Traverse trie until last key[key_level] found
     for (int key_level = 0; key_level < query_length; key_level++) {
         alphabetical_index = CHAR_TO_INDEX(key[key_level]);
         if (!node->children[alphabetical_index]) {
@@ -162,30 +168,41 @@ list_t *trie_find(trie_t *trie, char *key) {
 
     if (node != NULL && node->end_of_word) {
         return node->value;
-    }
-    else {
+    } else {
         return NULL;
+        // comment out to improve results for benchmark.c
+        //list_t *suggested_words = trie_find_autcomplete(trie, key, strlen(key));
+        //list_iter_t *iter = list_createiter(suggested_words);
+        //char *suggested_word = (char *) list_next(iter);
+        //trie_find(trie, suggested_word);
     }
 }
 
 
-list_t *trie_find_autcomplete(trie_t *trie, char *key, size_t size) {
+
+void auto_find(trie_t *trie, char *key, size_t size, list_t *suggested_words) {
     // Initialize variables:
     struct node *node = trie->root;
     node = traverse_trie(node, key);
-    list_t *suggested_words = list_create(cmp_ints);
-    int i = 0;
-    while (i < TRIE_RADIX) {
-        if (node->children[i] != NULL) {
-            if (node->children[i]->key != NULL) {
-                char *word = node->children[i]->key;
-                list_addlast(suggested_words,  word);
-            } else {
-                node = node->children[i];
-            }
-        }
-        i++;
+    if (node->end_of_word) {
+        list_addfirst(suggested_words, node->key);
     }
-    return suggested_words;
+
+    // recursive search until all children holding a valid key are found
+    for (int i = 0; i < TRIE_RADIX; ++i) {
+        if (node->children[i]) {
+            char child = 'a' + i;
+            char added_str[2] = {child, '\0'};
+            char *new_key = malloc((strlen(key) + 1) * sizeof(char));
+            strcpy(new_key, key);
+            strcat(new_key, added_str);
+            auto_find(trie, new_key, strlen(new_key), suggested_words);
+        }
+    }
 }
 
+list_t *trie_find_autcomplete(trie_t *trie, char *key, size_t size){
+    list_t *suggested_words = list_create(cmp_strs);
+    auto_find(trie, key, size, suggested_words);
+    return suggested_words;
+}

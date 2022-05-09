@@ -7,14 +7,13 @@
 #include "index.h"
 #include "printing.h"
 
-void PRINT_DEBUG_INFO(int inpos, int spos, int cur_word_len, char *input, char *suggestion)
-{
+void PRINT_DEBUG_INFO(int inpos, int spos, int cur_word_len, char *input, char *suggestion) {
     int x, y;
     int row = getmaxy(stdscr);
-    
+
     getyx(stdscr, y, x);
 
-    move(row-8, 0);
+    move(row - 8, 0);
     clear();
     printw("inpos: %d\n", inpos);
     printw("spos: %d\n", spos);
@@ -23,22 +22,20 @@ void PRINT_DEBUG_INFO(int inpos, int spos, int cur_word_len, char *input, char *
     printw("y: %d\n", y);
     printw("buffer: %s\n", input);
     printw("current suggestion: %s\n", suggestion);
-    if (suggestion != NULL)
-    {
+    if (suggestion != NULL) {
         printw("suggestion len: %d\n", strlen(suggestion));
     }
-        
 
-    move(row-1, x);
+
+    move(row - 1, x);
     refresh();
 }
 
-void ui_init()
-{
+void ui_init() {
     initscr();
     cbreak();
 
-    keypad(stdscr, TRUE);    
+    keypad(stdscr, TRUE);
     start_color();
     init_pair(1, COLOR_BLACK, COLOR_CYAN);
     init_pair(2, COLOR_BLACK, COLOR_WHITE);
@@ -51,11 +48,10 @@ void ui_init()
     return;
 }
 
-void ui_display_main_help()
-{
+void ui_display_main_help() {
     int row = getmaxy(stdscr);
     // Print menu
-    move(row-2, 0);
+    move(row - 2, 0);
     clrtoeol();
 
     printw("HOME - Reset buffer\t");
@@ -63,38 +59,34 @@ void ui_display_main_help()
 }
 
 
-void ui_display_input(char *input, char *suggestion, int sindex)
-{
+void ui_display_input(char *input, char *suggestion, int sindex) {
     int row = getmaxy(stdscr);
 
     // Print the promt and the current search term
-    move(row-1, 0);
+    move(row - 1, 0);
     clrtoeol();
     attron(COLOR_PAIR(2));
     printw("[Search Term]:");
     attroff(COLOR_PAIR(2));
 
-    if (input != NULL)
-    {
+    if (input != NULL) {
         printw(input);
-        if (suggestion != NULL)
-        {
+        if (suggestion != NULL) {
             int x = getmaxx(stdscr);
             attron(COLOR_PAIR(1));
-            printw((char *)&suggestion[sindex]);
+            printw((char *) &suggestion[sindex]);
             attroff(COLOR_PAIR(1));
 
-            move(row-1, x);
+            move(row - 1, x);
         }
     }
 
     refresh();
 }
 
-char *ui_main(index_t *idx, document_t *document)
-{
+char *ui_main(index_t *idx, document_t *document) {
     int row, c;
-    char *input = (char *)calloc(201, sizeof(char));
+    char *input = (char *) calloc(201, sizeof(char));
     char *suggestion = NULL;
 
     // inpos is the front of the input buffer
@@ -107,40 +99,33 @@ char *ui_main(index_t *idx, document_t *document)
     ui_display_main_help(row);
     ui_display_input(NULL, NULL, cur_word_len);
 
-    while ((c = getch()) != '\n')
-    {
+    while ((c = getch()) != '\n') {
         // Maximum input size is 200 characters
-        if (inpos >= 200)
-        {
+        if (inpos >= 200) {
             ui_display_input("Too long input, only 200 characters allowed.", NULL, cur_word_len);
             input[200] = '\0';
             return input;
         }
 
         // Handle specific character input
-        switch(c)
-        {
+        switch (c) {
             // Backspace character, deletes the last key input
             case KEY_BACKSPACE:
             case KEY_DC:
             case 127:
                 // Only delete characters if the buffer contains characters
-                if (inpos > 0)
-                {
+                if (inpos > 0) {
                     inpos--;
                     cur_word_len--;
 
                     // If we encounter a space char, we need to find the start of the previous word
-                    if (input[inpos] == ' ')
-                    {
+                    if (input[inpos] == ' ') {
                         spos = inpos;
-                        
+
                         // Find the next space after the current word
-                        for (;input[spos-1] != ' '; spos--)
-                        {
+                        for (; input[spos - 1] != ' '; spos--) {
                             // We're on the first word
-                            if (spos <= 0)
-                            {
+                            if (spos <= 0) {
                                 spos = 0;
                                 break;
                             }
@@ -151,14 +136,12 @@ char *ui_main(index_t *idx, document_t *document)
                 }
                 break;
 
-            // Right arrow key puts the suggested word into the buffer
+                // Right arrow key puts the suggested word into the buffer
             case KEY_RIGHT:
             case 67:
             case '\t':
-                if (suggestion != NULL && cur_word_len >= MIN_SUGGESTION_LEN)
-                {
-                    for (int i = cur_word_len; i < (int)strlen(suggestion); inpos++, i++)
-                    {
+                if (suggestion != NULL && cur_word_len >= MIN_SUGGESTION_LEN) {
+                    for (int i = cur_word_len; i < (int) strlen(suggestion); inpos++, i++) {
                         input[inpos] = suggestion[i];
                     }
                     //inpos += strlen(suggestion) - cur_word_len;
@@ -166,7 +149,7 @@ char *ui_main(index_t *idx, document_t *document)
                 }
                 break;
 
-            // Pressing the home key will reset the buffer
+                // Pressing the home key will reset the buffer
             case KEY_HOME:
                 memset(input, '\0', 200);
                 inpos = 0;
@@ -177,20 +160,16 @@ char *ui_main(index_t *idx, document_t *document)
         }
 
         // Copy the last ASCII key input into the buffer
-        if ((c >= 97 && c <= 122))
-        {
+        if ((c >= 97 && c <= 122)) {
             // We also nullterminate the next character in the buffer
             input[inpos] = c;
             inpos++;
             input[inpos] = '\0';
 
             cur_word_len++;
-        }
-        else if (c == ' ')
-        {
+        } else if (c == ' ') {
             // Only allow a single space character
-            if (input[inpos-1] == ' ')
-            {
+            if (input[inpos - 1] == ' ') {
                 continue;
             }
 
@@ -205,16 +184,13 @@ char *ui_main(index_t *idx, document_t *document)
             suggestion = NULL;
         }
 
-        if (cur_word_len >= MIN_SUGGESTION_LEN)
-        {
+        if (cur_word_len >= MIN_SUGGESTION_LEN) {
             // Null terminate the current input string
             input[inpos] = '\0';
-            
+
             // Get a suggestion from a given dictionary
-            suggestion = autocomplete(idx, (char *)&input[spos], cur_word_len, document);
-        }
-        else
-        {
+            suggestion = autocomplete(idx, (char *) &input[spos], cur_word_len, document);
+        } else {
             suggestion = NULL;
         }
 
@@ -222,17 +198,13 @@ char *ui_main(index_t *idx, document_t *document)
 
     }
 
-    if (inpos > 0)
-    {
-        input = realloc(input, inpos+1);
-        if (input[inpos-1] == ' ')
-        {
-            input[inpos-1] = '\0';
+    if (inpos > 0) {
+        input = realloc(input, inpos + 1);
+        if (input[inpos - 1] == ' ') {
+            input[inpos - 1] = '\0';
         }
         input[inpos] = '\0';
-    }
-    else
-    {
+    } else {
         free(input);
     }
 
@@ -240,13 +212,11 @@ char *ui_main(index_t *idx, document_t *document)
 }
 
 
-static void ui_display_results_help(int rows, search_hit_t *cur_pos)
-{
-    move(rows-1, 0);
+static void ui_display_results_help(int rows, search_hit_t *cur_pos) {
+    move(rows - 1, 0);
     printw("HOME - Go back to search\t");
     printw("ENTER - Next result\t");
-    if (cur_pos != NULL)
-    {
+    if (cur_pos != NULL) {
         printw("CURRENT WORD: %d", cur_pos->location);
     }
 
@@ -258,38 +228,30 @@ static void ui_display_results_help(int rows, search_hit_t *cur_pos)
     refresh();
 }
 
-static void ui_display_results_content(char **content, int content_length, search_hit_t *cur_pos)
-{
+static void ui_display_results_content(char **content, int content_length, search_hit_t *cur_pos) {
     move(1, 0);
     int from = 0;
     int y;
     int maxy = getmaxy(stdscr);
 
-    for (from = cur_pos->location; from > 0; from--)
-    {
-        if (strcmp(content[from], "\n") == 0)
-        {
+    for (from = cur_pos->location; from > 0; from--) {
+        if (strcmp(content[from], "\n") == 0) {
             DEBUG_PRINT("failed because of cmp....  \n");
             break;
         }
     }
 
-    for (int i = from; i < content_length; i++)
-    {
-        if (i == cur_pos->location)
-        {
+    for (int i = from; i < content_length; i++) {
+        if (i == cur_pos->location) {
             attron(COLOR_PAIR(1));
             printw("%s", content[i]);
             attroff(COLOR_PAIR(1));
-        }
-        else
-        {
+        } else {
             printw("%s", content[i]);
         }
         y = getcury(stdscr);
         maxy = getmaxy(stdscr);
-        if (y >= maxy-2)
-        {
+        if (y >= maxy - 2) {
             break;
         }
     }
@@ -297,8 +259,7 @@ static void ui_display_results_content(char **content, int content_length, searc
 }
 
 
-void ui_result(search_result_t *res)
-{
+void ui_result(search_result_t *res) {
     int row, c;
     char **content = result_get_content(res);
     int content_length = result_get_content_length(res);
@@ -306,24 +267,21 @@ void ui_result(search_result_t *res)
     row = getmaxy(stdscr);
     clear();
 
+    DEBUG_PRINT("%d", cur_pos->location);
+
     ui_display_results_help(row, cur_pos);
 
 
-    if (content == NULL || cur_pos == NULL)
-    {
+    if (content == NULL || cur_pos == NULL) {
         attron(COLOR_PAIR(1));
         printw("\nQuery not found in document\n");
         attroff(COLOR_PAIR(1));
-    }
-    else
-    {
+    } else {
         ui_display_results_content(content, content_length, cur_pos);
     }
 
-    while ((c = getch()) != KEY_HOME)
-    {
-        switch(c)
-        {
+    while ((c = getch()) != KEY_HOME) {
+        switch (c) {
             case KEY_ENTER:
             case '\n':
                 clear();
@@ -331,25 +289,21 @@ void ui_result(search_result_t *res)
                 break;
         }
 
-        if (cur_pos == NULL)
-        {
+        if (cur_pos == NULL) {
             content = result_get_content(res);
             content_length = result_get_content_length(res);
-            if (content == NULL)
-            {
+            if (content == NULL) {
 
                 attron(COLOR_PAIR(1));
                 printw("END OF RESULTS - PRESS HOME TO GO BACK");
                 attroff(COLOR_PAIR(1));
                 continue;
             }
-        }
-        else
-        {
+        } else {
             ui_display_results_help(row, cur_pos);
             ui_display_results_content(content, content_length, cur_pos);
         }
-        
+
     }
 
     free(res);
@@ -357,8 +311,7 @@ void ui_result(search_result_t *res)
 }
 
 
-void ui_deinit()
-{
+void ui_deinit() {
     endwin();
     return;
 }

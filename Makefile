@@ -17,9 +17,10 @@ LDFLAGS=-lm -lncurses -DLOG_LEVEL=0
 .PHONY: index
 .PHONY: test
 .PHONY: bench
+.PHONY: program
 .PHONY: clean
 
-all: index test bench
+all: index test bench program
 
 index: src/*.c src/main.c Makefile
 	$(info $(SRC))
@@ -36,6 +37,8 @@ run: test bench
 	./test_index
 	./bench_index 1> bench.txt
 
+program: $(SRC) Makefile
+	$(CC) -o test_program $(CFLAGS) $(SRC) src/program.c -I$(INCLUDE) $(LDFLAGS)
 
 clean:
 	rm -rf index test_index bench_index

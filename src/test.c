@@ -1,14 +1,9 @@
-//
-// Created by oystein on 02.05.22.
-//
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 #include <signal.h>
-#include <ucontext.h>
 #include <setjmp.h>
-
 #include "trie.h"
 #include "index.h"
 #include "printing.h"
@@ -24,13 +19,15 @@ bool catch = true;
 bool caught_segfault = false;
 static jmp_buf jbuf;
 
-int cmpfunc(void *a, void *b)
-{
-    return strcmp((const char *)a, (const char *)b);
+int cmpfunc(void *a, void *b) {
+    return strcmp((const char *) a, (const char *) b);
 }
 
-static int failed(char *msg)
-{
+static inline int cmp_ints(void *a, void *b) {
+    return *((int *) a) - *((int *) b);
+}
+
+static int failed(char *msg) {
     msg = (msg == NULL) ? "" : msg;
     fprintf(stderr, "%s", BRED);
     fprintf(stderr, "FAILED %s\n", msg);
@@ -38,8 +35,7 @@ static int failed(char *msg)
     return 1;
 }
 
-static int ok()
-{
+static int ok() {
     fprintf(stderr, "%s", BGRN);
     fprintf(stderr, "%s", "OK\n");
     fprintf(stderr, "%s", reset);
@@ -47,8 +43,7 @@ static int ok()
 }
 
 
-int test_trie()
-{
+int test_trie() {
     int num_failed = 0;
     int err = 0;
 
@@ -60,23 +55,17 @@ int test_trie()
     // Test insert
     TEST_PRINT("trie_insert(): ");
     sigsetjmp(jbuf, !0);
-    if (catch == true)
-    {
+    if (catch == true) {
         err = trie_insert(trie, "hello", NULL);
     }
 
-    if (caught_segfault == true)
-    {
+    if (caught_segfault == true) {
         num_failed++;
         failed("Segmentation Fault");
-    }
-    else if (err != 0)
-    {
+    } else if (err != 0) {
         num_failed++;
         failed("Function returned non-zero");
-    }
-    else
-    {
+    } else {
         ok();
     }
     catch = true;
@@ -87,28 +76,22 @@ int test_trie()
     TEST_PRINT("trie_find(): ");
     sigsetjmp(jbuf, !0);
     char *res;
-    if (catch == true)
-    {
+    if (catch == true) {
         res = trie_find(trie, "hel");
     }
 
-    if (caught_segfault == true)
-    {
+    if (caught_segfault == true) {
         num_failed++;
         failed("Segmentation Fault");
-    }
-    else if (res == NULL)
-    {
+    } else if (res == NULL) {
         num_failed++;
         failed("Function returned NULL on existing word");
     }
-    else if (strcmp(res, "hello") != 0)
-    {
+    else if (strcmp(res, "hello") != 0){
         num_failed++;
+        DEBUG_PRINT("This test won't work since my method uses another return type (list_t)  ");
         failed("Trie find did not return expected value");
-    }
-    else
-    {
+    } else {
         ok();
     }
     catch = true;
@@ -117,18 +100,14 @@ int test_trie()
     // Test destroy
     TEST_PRINT("trie_destroy(): ");
     sigsetjmp(jbuf, !0);
-    if (catch == true)
-    {
+    if (catch == true) {
         trie_destroy(trie);
     }
 
-    if (caught_segfault == true)
-    {
+    if (caught_segfault == true) {
         num_failed++;
         failed("Segmentation Fault");
-    }
-    else
-    {
+    } else {
         ok();
     }
     catch = true;
@@ -140,8 +119,7 @@ int test_trie()
 }
 
 
-int test_index()
-{
+int test_index() {
     int num_failed = 0;
 
     // Test Create
@@ -153,20 +131,16 @@ int test_index()
     // Test insert document
     TEST_PRINT("index_add_document(): ");
     sigsetjmp(jbuf, !0);
-    if (catch == true)
-    {
+    if (catch == true) {
         list_t *words = list_create(cmpfunc);
         tokenize_file("data/hamlet.txt", words);
         index_add_document(idx, "hamlet", words, document);
     }
 
-    if (caught_segfault == true)
-    {
+    if (caught_segfault == true) {
         num_failed++;
         failed("Segmentation Fault");
-    }
-    else
-    {
+    } else {
         ok();
     }
     catch = true;
@@ -177,23 +151,17 @@ int test_index()
     TEST_PRINT("index_find(): ");
     search_result_t *sr = NULL;
     sigsetjmp(jbuf, !0);
-    if (catch == true)
-    {
+    if (catch == true) {
         sr = index_find(idx, "hamlet", document);
     }
 
-    if (caught_segfault == true)
-    {
+    if (caught_segfault == true) {
         num_failed++;
         failed("Segmentation Fault");
-    }
-    else if (sr == NULL)
-    {
+    } else if (sr == NULL) {
         num_failed++;
         failed("Function returned NULL");
-    }
-    else
-    {
+    } else {
         ok();
     }
     catch = true;
@@ -205,29 +173,21 @@ int test_index()
     char *w = "haml";
     char *completed = NULL;
     sigsetjmp(jbuf, !0);
-    if (catch == true)
-    {
+    if (catch == true) {
         completed = autocomplete(idx, w, 4, document);
     }
 
-    if (caught_segfault == true)
-    {
+    if (caught_segfault == true) {
         num_failed++;
         failed("Segmentation Fault");
-    }
-    else if (completed == NULL)
-    {
+    } else if (completed == NULL) {
         num_failed++;
         failed("Function returned NULL");
-    }
-    else if (cmpfunc((void *)completed, "Hamlet") != 0)
-    {
+    } else if (cmpfunc((void *) completed, "Hamlet") != 0) {
         num_failed++;
         failed("Function returned wrong value");
         fprintf(stderr, "\t\t\t%s -> %s\n", w, completed);
-    }
-    else
-    {
+    } else {
         ok();
     }
     catch = true;
@@ -237,28 +197,21 @@ int test_index()
     TEST_PRINT("result_get_content(): ");
     char **doc = NULL;
     sigsetjmp(jbuf, !0);
-    if (catch == true)
-    {
+    if (catch == true) {
         doc = result_get_content(sr);
     }
 
-    if (caught_segfault == true)
-    {
+    if (caught_segfault == true) {
         num_failed++;
         failed("Segmentation Fault");
-    }
-    else if (doc == NULL)
-    {
+    } else if (doc == NULL) {
         num_failed++;
         failed("Function returned NULL");
-    }
-    else if (cmpfunc((void *)doc[0], "The") != 0)
+    }else if (cmpfunc((void *)doc[0], "The") != 0)
     {
         num_failed++;
         failed("Function returned wrong value");
-    }
-    else
-    {
+    } else {
         ok();
     }
     catch = true;
@@ -269,23 +222,17 @@ int test_index()
     TEST_PRINT("result_get_content_length(): ");
     int length = 0;
     sigsetjmp(jbuf, !0);
-    if (catch == true)
-    {
+    if (catch == true) {
         length = result_get_content_length(sr);
     }
 
-    if (caught_segfault == true)
-    {
+    if (caught_segfault == true) {
         num_failed++;
         failed("Segmentation Fault");
-    }
-    else if (length == 0)
-    {
+    } else if (length == 0) {
         num_failed++;
         failed("Function returned 0");
-    }
-    else
-    {
+    } else {
         ok();
     }
     catch = true;
@@ -296,30 +243,22 @@ int test_index()
     TEST_PRINT("result_next(): ");
     search_hit_t *next = NULL;
     sigsetjmp(jbuf, !0);
-    if (catch == true)
-    {
+    if (catch == true) {
         next = result_next(sr);
     }
 
-    if (caught_segfault == true)
-    {
+    if (caught_segfault == true) {
         num_failed++;
         failed("Segmentation Fault");
-    }
-    else if (next == NULL)
-    {
+    } else if (next == NULL) {
         num_failed++;
         failed("Function returned NULL");
-    }
-    else if (next->location != 6)
-    {
+    } else if (next->location != 6) {
         num_failed++;
         failed("Function returned wrong location");
         fprintf(stderr, "\t\t\tnext->location -> %d\n", next->location);
 
-    }
-    else
-    {
+    } else {
         ok();
     }
     catch = true;
@@ -330,18 +269,14 @@ int test_index()
     TEST_PRINT("index_destroy(): ");
 
     sigsetjmp(jbuf, !0);
-    if (catch == true)
-    {
+    if (catch == true) {
         index_destroy(idx);
     }
 
-    if (caught_segfault == true)
-    {
+    if (caught_segfault == true) {
         num_failed++;
         failed("Segmentation Fault");
-    }
-    else
-    {
+    } else {
         ok();
     }
     catch = true;
@@ -355,10 +290,8 @@ int test_index()
     return num_failed;
 }
 
-void segfault_handler(int signo)
-{
-    if (signo != SIGSEGV)
-    {
+void segfault_handler(int signo) {
+    if (signo != SIGSEGV) {
         fprintf(stderr, "SIGSEGV(%d) expected, got %d", SIGSEGV, signo);
     }
     caught_segfault = true;
@@ -366,11 +299,9 @@ void segfault_handler(int signo)
     siglongjmp(jbuf, 1);
 }
 
-int main()
-{
+int main() {
 
-    if (signal (SIGSEGV, segfault_handler) == SIG_ERR)
-    {
+    if (signal(SIGSEGV, segfault_handler) == SIG_ERR) {
         DEBUG_PRINT("Not allowed to catch SIGSEGV\n");
     }
     int total_failed = 0;

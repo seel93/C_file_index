@@ -29,11 +29,11 @@ struct index {
  * Implement this to work with the search result functions.
  */
 struct search_result {
-    map_t *search_result_map;
-    list_t *document_list;
-    map_t *document_map;
-    list_iter_t *document_iterator;
-    list_iter_t *current_result_iterator;
+    map_t *search_result_map; // key: search query value: list_t of indexes
+    list_t *document_list; // list of documents
+    map_t *document_map; // key: document_name value: list_t of all words within the document
+    list_iter_t *document_iterator; // keep track of documents
+    list_iter_t *current_result_iterator; // keeps track of all search_hit_t
     char *current_document;
 };
 
@@ -50,7 +50,6 @@ static inline int cmp_ints(void *a, void *b) {
 static inline int cmp_strs(void *a, void *b) {
     return strcasecmp((const char *) a, (const char *) b);
 }
-
 
 /*
  * Creates a new, empty index.
@@ -92,9 +91,8 @@ void document_destroy(document_t *document) {
     free(document);
 }
 
-
 /*
- * Destroys the given index.  Subsequently accessing the index will
+ * Destroys the given index. Subsequently accessing the index will
  * lead to undefined behavior.
  */
 void index_destroy(index_t *index) {
@@ -118,76 +116,83 @@ void removeChar(char *str, char garbage) {
 }
 
 /*
- * Add space to every word readability in the console
+ * Removes non-alphabetic symbols
  */
-char *add_space_to_string(char *str) {
-    char *name_with_extension;
-    name_with_extension = malloc(strlen(str) + 1 + 4);
-    strcpy(name_with_extension, str);
-    strcat(name_with_extension, " ");
-    return name_with_extension;
+char *process_key(char *key) {
+    bool valid_key = false;
+    for (int i = 0; key[i] != '\0'; i++) {
+        if (!isalpha(key[i])) {
+            removeChar(key, key[i]);
+        } else {
+            valid_key = true;
+        }
+    }
+    if (valid_key) {
+        return key;
+    }
+    return NULL;
 }
-
 
 /*
  * Adds all the words from the given document to the given index.
  * This function is responsible for deallocating the list and the document name after use.
  */
 void index_add_document(index_t *idx, char *document_name, list_t *words, document_t *document) {
-    list_iter_t *it;
-    it = list_createiter(words);
+    list_iter_t *document_word_iterator = list_createiter(words);
     trie_t *trie = trie_create();
     list_t *words_from_document = list_create(cmp_strs);
     list_addlast(document->document_list, document_name);
     int word_index = 0;
 
-    while (list_hasnext(it)) {
-        char *key = list_next(it);
-        bool valid_key = false;
-        for (int i = 0; key[i] != '\0'; i++) {
-            if (!isalpha(key[i])) {
-                removeChar(key, key[i]);
-            } else {
-                valid_key = true;
+    while (list_hasnext(document_word_iterator)) {
+        char *key = process_key(list_next(document_word_iterator));
+        if (key != NULL) {
+            // accounts for spaces in the file, except for at the beginning
+            if (word_index != 0) {
+                word_index++;
+                list_addlast(words_from_document, " ");
             }
-        }
-        if (valid_key) {
             int *p = malloc(sizeof(int));
             *p = word_index;
             trie_insert(trie, key, p);
-            list_addlast(words_from_document, add_space_to_string(key));
+            list_addlast(words_from_document, key);
             word_index++;
         }
     }
-    map_put(idx->index_map, document_name, trie);
-    map_put(idx->document_map, document_name, words_from_document);
-    map_put(document->document_map, document_name, words_from_document);
+    map_put(idx->index_map, document_name, trie); // populates trie
+    map_put(idx->document_map, document_name, words_from_document); // link all words to a document
+    map_put(document->document_map, document_name, words_from_document); // link all words to a document
 }
 
 /*
- * Add indexes from all queries with multiple words or sentence
+ * Add indexes from all queries, takes account for multiple words or sentences
  */
 list_t *add_result_to_list(list_t *result_list, list_t *current_result) {
-    list_sort(result_list);
-    list_sort(current_result);
-    if (list_size(result_list) == 0) {
-        list_iter_t *current_result_list_iter = list_createiter(current_result);
-        while (list_hasnext(current_result_list_iter)) {
-            list_addlast(result_list, list_next(current_result_list_iter));
-        }
-        DEBUG_PRINT("empty list, add all elements \n");
-    } else {
-        DEBUG_PRINT("check for corresponding indexes and modify list \n");
-        list_iter_t *current_result_list_iter = list_createiter(current_result);
-        list_iter_t *result_list_iter = list_createiter(result_list);
-
-        while (list_hasnext(current_result_list_iter) && list_hasnext(result_list_iter)) {
-            int current_index = *(int *) list_next(result_list_iter);
-            int next_index = *(int *) list_next(current_result_list_iter);
-            DEBUG_PRINT(" sentence indexes: %d %d \n", current_index, next_index);
-        }
+    list_iter_t *current_result_list_iter = list_createiter(current_result);
+    while (list_hasnext(current_result_list_iter)) {
+        list_addlast(result_list, list_next(current_result_list_iter));
     }
+    list_destroy(current_result);
+    list_sort(result_list);
     return result_list;
+}
+
+/*
+ * creates a list of search_hit_t from the results of indexes
+ */
+list_t *add_search_hit_to_result(list_t *result_set, size_t query_size){
+    list_iter_t *iter = list_createiter(result_set);
+    list_sort(result_set);
+    list_t *search_result_list = list_create(cmp_ints);
+    while (list_hasnext(iter)) {
+        int *elem = list_next(iter);
+        search_hit_t *hit = malloc(sizeof(search_hit_t));
+        hit->len = query_size;
+        hit->location = *(int *) elem;
+        list_addfirst(search_result_list, hit);
+    }
+    list_destroyiter(iter);
+    return search_result_list;
 }
 
 /*
@@ -198,7 +203,7 @@ search_result_t *index_find(index_t *idx, char *query, document_t *document) {
     // Init variables that apply to all documents
     list_iter_t *document_iterator = list_createiter(document->document_list);
     search_result_t *search_result_object = create_search_result();
-
+    search_result_object->current_document = (char *) get_element_for_head(document->document_list);
 
     while (list_hasnext(document_iterator)) {
         char query_array[strlen(query)];
@@ -214,7 +219,6 @@ search_result_t *index_find(index_t *idx, char *query, document_t *document) {
         while (split_query != NULL) {
             list_t *split_query_result_set = trie_find(trie, split_query);
             if (split_query_result_set != NULL) {
-                DEBUG_PRINT(" %d %s %s\n", list_size(split_query_result_set), document_name, split_query);
                 add_result_to_list(result_set, split_query_result_set);
             }
             split_query = strtok(NULL, " ");
@@ -222,26 +226,18 @@ search_result_t *index_find(index_t *idx, char *query, document_t *document) {
 
         list_addlast(search_result_object->document_list, document_name);
         if (result_set != NULL) {
-            DEBUG_PRINT("assinging search_hit for result %s \n", document_name);
-            list_iter_t *iter = list_createiter(result_set);
-            list_t *search_result_list = list_create(cmp_ints);
-            while (list_hasnext(iter)) {
-                int *elem = list_next(iter);
-                search_hit_t *hit = malloc(sizeof(search_hit_t));
-                hit->len = strlen(query);
-                hit->location = *(int *) elem;
-                list_addlast(search_result_list, hit);
-            }
+            list_t *search_result_list = add_search_hit_to_result(result_set, strlen(query));
+            list_sort(search_result_list);
             map_put(search_result_object->search_result_map, document_name, search_result_list);
             list_destroy(result_set);
-            search_result_object->current_document = document_name;
-        search_result_object->current_result_iterator = list_createiter(search_result_list);
         }
     }
+
+    list_destroyiter(document_iterator);
     search_result_object->document_iterator = list_createiter(search_result_object->document_list);
+    search_result_object->current_result_iterator = list_createiter(map_get(search_result_object->search_result_map, search_result_object->current_document));
     return search_result_object;
 }
-
 
 /*
  * Autocomplete searches the given trie for a word containing input.
@@ -253,16 +249,18 @@ char *autocomplete(index_t *idx, char *input, size_t size, document_t *document)
     while (list_hasnext(it)) {
         trie_t *trie = map_get(idx->index_map, list_next(it));
         list_t *result_set = trie_find_autcomplete(trie, input, size);
+        list_sort(result_set); // sort autocomplete suggestions in alphabetical order
         if (result_set != NULL) {
             list_iter_t *iter = list_createiter(result_set);
             if (list_hasnext(iter)) {
-                return (char *) list_next(iter);
+                char *suggested_word = (char *) list_next(iter);
+                list_popfirst(result_set);
+                return suggested_word;
             }
         }
     }
     return "";
 }
-
 
 /* 
  * Return the content of the current document.
@@ -272,7 +270,8 @@ char *autocomplete(index_t *idx, char *input, size_t size, document_t *document)
  */
 char **result_get_content(search_result_t *res) {
     if (list_hasnext(res->document_iterator)) {
-        list_t *document_words = map_get(res->document_map, list_next(res->document_iterator));
+        char *current_document = list_next(res->document_iterator);
+        list_t *document_words = map_get(res->document_map, current_document);
         list_iter_t *results_for_ui_iterator = list_createiter(document_words);
         int arr_size = list_size(document_words);
         char **arr;
@@ -280,9 +279,13 @@ char **result_get_content(search_result_t *res) {
 
         while (list_hasnext(results_for_ui_iterator)) {
             for (int i = 0; i < arr_size; ++i) {
-                arr[i] = (char *) list_next(results_for_ui_iterator);
+                arr[i] = list_next(results_for_ui_iterator);
             }
         }
+        list_popfirst(res->document_list);
+        list_destroyiter(results_for_ui_iterator);
+        res->current_document = current_document;
+        res->current_result_iterator = list_createiter(map_get(res->search_result_map, res->current_document));
         return arr;
     }
     return NULL;
@@ -297,18 +300,14 @@ int result_get_content_length(search_result_t *res) {
     return list_size(map_get(res->document_map, res->current_document));
 }
 
-
 /*
  * Get the next result_list from the current query.
  * The result_list should be returned as an int, which is the index in the document content.
  * Should return NULL at the end of the search results.
  */
 search_hit_t *result_next(search_result_t *res) {
-    list_t *result_list = map_get(res->search_result_map, res->current_document);
-    list_sort(result_list);
     if (list_hasnext(res->current_result_iterator)) {
         search_hit_t *hit = list_next(res->current_result_iterator);
-        DEBUG_PRINT("location for query: %d \n", hit->location);
         return hit;
     } else {
         return NULL;

@@ -1,3 +1,4 @@
+
 #  Compiling
 
 To compile the program run the `Makefile` using `make`.
@@ -34,3 +35,30 @@ The program can be run using `./index data/` to use the text files contained in 
 
 This will put all your debug prints into `log.txt`. Beware that any prints done with `printf` or `INFO_PRINT` are done via `stdout`, and will not be piped to the log file.
 
+## Development:
+This application is developed following version of tools:
+
+```
+ ~  gcc --version
+gcc (Ubuntu 9.4.0-1ubuntu1~20.04.1) 9.4.0
+
+
+ ~  g++ --version
+g++ (Ubuntu 9.4.0-1ubuntu1~20.04.1) 9.4.0
+
+
+ ~  make --version
+GNU Make 4.2.1
+Built for x86_64-pc-linux-gnu
+
+
+ ~  dpkg -l '*ncurses*' | grep '^ii'
+ii  libncurses-dev:amd64   6.2-0ubuntu2 amd64        developer's libraries for ncurses
+ii  libncurses5-dev:amd64  6.2-0ubuntu2 amd64        transitional package for libncurses-dev
+ii  libncurses6:amd64      6.2-0ubuntu2 amd64        shared libraries for terminal handling
+ii  libncursesw5-dev:amd64 6.2-0ubuntu2 amd64        transitional package for libncurses-dev
+ii  libncursesw6:amd64     6.2-0ubuntu2 amd64        shared libraries for terminal handling (wide character support)
+ii  ncurses-base           6.2-0ubuntu2 all          basic terminal type definitions
+ii  ncurses-bin            6.2-0ubuntu2 amd64        terminal-related programs and man pages
+
+```
