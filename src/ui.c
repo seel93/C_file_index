@@ -236,7 +236,6 @@ static void ui_display_results_content(char **content, int content_length, searc
 
     for (from = cur_pos->location; from > 0; from--) {
         if (strcmp(content[from], "\n") == 0) {
-            DEBUG_PRINT("failed because of cmp....  \n");
             break;
         }
     }
@@ -266,8 +265,6 @@ void ui_result(search_result_t *res) {
     search_hit_t *cur_pos = result_next(res);
     row = getmaxy(stdscr);
     clear();
-
-    DEBUG_PRINT("%d", cur_pos->location);
 
     ui_display_results_help(row, cur_pos);
 

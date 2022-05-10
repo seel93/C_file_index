@@ -133,10 +133,7 @@ int trie_insert(trie_t *trie, char *key, void *value) {
         iter->value = list;
         list_addlast(iter->value, value);
     } else {
-        // Check for uniqueness removed for performance reasons
-        //if(!list_contains(iter->value, value)){}
-            list_addlast(iter->value, value);
-
+        list_addlast(iter->value, value);
     }
 
     return 0;
@@ -170,39 +167,42 @@ list_t *trie_find(trie_t *trie, char *key) {
         return node->value;
     } else {
         return NULL;
-        // comment out to improve results for benchmark.c
-        //list_t *suggested_words = trie_find_autcomplete(trie, key, strlen(key));
-        //list_iter_t *iter = list_createiter(suggested_words);
-        //char *suggested_word = (char *) list_next(iter);
-        //trie_find(trie, suggested_word);
     }
 }
 
 
-
-void auto_find(trie_t *trie, char *key, size_t size, list_t *suggested_words) {
+void auto_complete_find(trie_t *trie, char *key, size_t size, list_t *suggested_words) {
     // Initialize variables:
     struct node *node = trie->root;
     node = traverse_trie(node, key);
+
+    // terminating condition
+    if (node == NULL) {
+        return;
+    }
     if (node->end_of_word) {
         list_addfirst(suggested_words, node->key);
     }
 
     // recursive search until all children holding a valid key are found
     for (int i = 0; i < TRIE_RADIX; ++i) {
-        if (node->children[i]) {
+        if (node->children[i] != NULL) {
             char child = 'a' + i;
             char added_str[2] = {child, '\0'};
             char *new_key = malloc((strlen(key) + 1) * sizeof(char));
             strcpy(new_key, key);
             strcat(new_key, added_str);
-            auto_find(trie, new_key, strlen(new_key), suggested_words);
+            auto_complete_find(trie, new_key, strlen(new_key), suggested_words);
         }
     }
 }
 
-list_t *trie_find_autcomplete(trie_t *trie, char *key, size_t size){
+list_t *trie_find_autcomplete(trie_t *trie, char *key, size_t size) {
     list_t *suggested_words = list_create(cmp_strs);
-    auto_find(trie, key, size, suggested_words);
-    return suggested_words;
+    auto_complete_find(trie, key, size, suggested_words);
+    if (list_size(suggested_words) > 0) {
+        return suggested_words;
+    } else {
+        return NULL;
+    }
 }

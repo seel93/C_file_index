@@ -1,4 +1,3 @@
-
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
@@ -13,7 +12,6 @@
  */
 struct document {
     list_t *document_list;
-    map_t *document_map;
 };
 
 /*
@@ -66,7 +64,6 @@ index_t *index_create() {
 */
 document_t *document_create() {
     document_t *document = malloc(sizeof(document));
-    document->document_map = map_create(cmp_strs, djb2);
     document->document_list = list_create(cmp_strs);
     return document;
 }
@@ -86,7 +83,6 @@ search_result_t *create_search_result() {
  * Destroys the given document
  */
 void document_destroy(document_t *document) {
-    map_destroy(document->document_map, NULL, NULL);
     list_destroy(document->document_list);
     free(document);
 }
@@ -161,7 +157,6 @@ void index_add_document(index_t *idx, char *document_name, list_t *words, docume
     }
     map_put(idx->index_map, document_name, trie); // populates trie
     map_put(idx->document_map, document_name, words_from_document); // link all words to a document
-    map_put(document->document_map, document_name, words_from_document); // link all words to a document
 }
 
 /*
@@ -173,16 +168,14 @@ list_t *add_result_to_list(list_t *result_list, list_t *current_result) {
         list_addlast(result_list, list_next(current_result_list_iter));
     }
     list_destroy(current_result);
-    list_sort(result_list);
     return result_list;
 }
 
 /*
  * creates a list of search_hit_t from the results of indexes
  */
-list_t *add_search_hit_to_result(list_t *result_set, size_t query_size){
+list_t *add_search_hit_to_result(list_t *result_set, size_t query_size) {
     list_iter_t *iter = list_createiter(result_set);
-    list_sort(result_set);
     list_t *search_result_list = list_create(cmp_ints);
     while (list_hasnext(iter)) {
         int *elem = list_next(iter);
@@ -211,6 +204,7 @@ search_result_t *index_find(index_t *idx, char *query, document_t *document) {
         char *split_query = strtok(query_array, " ");
         char *document_name = list_next(document_iterator);
 
+        // add all words for current document to result:
         map_put(search_result_object->document_map, document_name, map_get(idx->document_map, document_name));
 
         trie_t *trie = map_get(idx->index_map, document_name);
@@ -235,7 +229,8 @@ search_result_t *index_find(index_t *idx, char *query, document_t *document) {
 
     list_destroyiter(document_iterator);
     search_result_object->document_iterator = list_createiter(search_result_object->document_list);
-    search_result_object->current_result_iterator = list_createiter(map_get(search_result_object->search_result_map, search_result_object->current_document));
+    search_result_object->current_result_iterator = list_createiter(
+            map_get(search_result_object->search_result_map, search_result_object->current_document));
     return search_result_object;
 }
 
@@ -249,8 +244,8 @@ char *autocomplete(index_t *idx, char *input, size_t size, document_t *document)
     while (list_hasnext(it)) {
         trie_t *trie = map_get(idx->index_map, list_next(it));
         list_t *result_set = trie_find_autcomplete(trie, input, size);
-        list_sort(result_set); // sort autocomplete suggestions in alphabetical order
         if (result_set != NULL) {
+            list_sort(result_set); // sort autocomplete suggestions in alphabetical order
             list_iter_t *iter = list_createiter(result_set);
             if (list_hasnext(iter)) {
                 char *suggested_word = (char *) list_next(iter);
@@ -259,7 +254,7 @@ char *autocomplete(index_t *idx, char *input, size_t size, document_t *document)
             }
         }
     }
-    return "";
+    return NULL;
 }
 
 /* 
@@ -269,7 +264,8 @@ char *autocomplete(index_t *idx, char *input, size_t size, document_t *document)
  * This function should return NULL if there are no more documents.
  */
 char **result_get_content(search_result_t *res) {
-    if (list_hasnext(res->document_iterator)) {
+    // Only return a result if there are any indexes found for the document
+    if (list_hasnext(res->document_iterator) && map_get(res->search_result_map, res->current_document) != NULL) {
         char *current_document = list_next(res->document_iterator);
         list_t *document_words = map_get(res->document_map, current_document);
         list_iter_t *results_for_ui_iterator = list_createiter(document_words);

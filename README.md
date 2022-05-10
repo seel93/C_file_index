@@ -42,15 +42,12 @@ This application is developed following version of tools:
  ~  gcc --version
 gcc (Ubuntu 9.4.0-1ubuntu1~20.04.1) 9.4.0
 
-
  ~  g++ --version
 g++ (Ubuntu 9.4.0-1ubuntu1~20.04.1) 9.4.0
-
 
  ~  make --version
 GNU Make 4.2.1
 Built for x86_64-pc-linux-gnu
-
 
  ~  dpkg -l '*ncurses*' | grep '^ii'
 ii  libncurses-dev:amd64   6.2-0ubuntu2 amd64        developer's libraries for ncurses
@@ -62,3 +59,11 @@ ii  ncurses-base           6.2-0ubuntu2 all          basic terminal type definit
 ii  ncurses-bin            6.2-0ubuntu2 amd64        terminal-related programs and man pages
 
 ```
+## Testing
+
+Tests can be run using the `program.c` file. It's added to the make file so you can run it using:
+```
+make program
+./test_program ./data
+```
+Feel free to modify the tests however you want
